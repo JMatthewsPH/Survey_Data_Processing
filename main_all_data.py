@@ -1,7 +1,7 @@
 import pandas as pd
 from fish_pre_processing import clean_all_fish_data, create_daily_fish_df
 from utils import (
-    determine_number_of_dives_per_day,
+    determine_number_of_dives_per_period,
     prepare_results_df,
     save_site_dataframes,
 )
@@ -25,7 +25,7 @@ print(len(all_fish_survey_data_df))
 print(all_fish_survey_data_df.head())
 
 # Calculate the number of dives per day for each site
-daily_dive_numbers_df = determine_number_of_dives_per_day(all_fish_survey_data_df)
+daily_dive_numbers_df = determine_number_of_dives_per_period(all_fish_survey_data_df)
 print(daily_dive_numbers_df.head(20))
 
 # Create dataframe that contains data at fish (category and size) level for each dive site per day

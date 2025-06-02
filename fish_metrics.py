@@ -1,5 +1,5 @@
 import pandas as pd
-from utils import prepare_results_df
+from utils import prepare_results_df, add_periods
 
 
 def calculate_fish_metrics(
@@ -19,21 +19,7 @@ def calculate_fish_metrics(
     pd.DataFrame: A DataFrame with aggregated metrics based on the specified period.
     """
     daily_fish_data_df = create_daily_fish_df(pre_processed_fish_data_df)
-    if period == "monthly":
-        daily_fish_data_df["Period"] = daily_fish_data_df["Date"].dt.to_period("M")
-    elif period == "seasonal":
-        # Define seasons (e.g., Winter: Dec-Feb, Spring: Mar-May, etc.)
-        daily_fish_data_df["Period"] = daily_fish_data_df["Date"].dt.month % 12 // 3 + 1
-        daily_fish_data_df["Period"] = daily_fish_data_df["Period"].map(
-            {
-                1: "Winter",
-                2: "Spring",
-                3: "Summer",
-                4: "Fall",
-            }
-        )
-    else:
-        daily_fish_data_df["Period"] = daily_fish_data_df["Date"]
+    daily_fish_data_df = add_periods(daily_fish_data_df, period)
 
     results_df = prepare_results_df(daily_fish_data_df)
     results_df = calculate_commercial_biomass(daily_fish_data_df, results_df)
@@ -54,7 +40,7 @@ def calculate_fish_metrics(
     )
 
     return (
-        results_df.groupby("Period").sum().reset_index()
+        results_df.groupby(["Period", "Site"]).sum().reset_index()
         if period != "daily"
         else results_df
     )
