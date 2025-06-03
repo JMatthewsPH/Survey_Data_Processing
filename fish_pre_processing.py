@@ -19,9 +19,10 @@ def pre_process_fish_data(all_fish_survey_data_df: pd.DataFrame) -> pd.DataFrame
     to be calculated.
     """
     # Remove diver/observer names
-    all_fish_survey_data_df.drop(
-        ["Observer_name_1", "Observer_name_2"], axis=1, inplace=True
-    )
+    if {"Observer_name_1", "Observer_name_2"}.issubset(all_fish_survey_data_df.columns):
+        all_fish_survey_data_df.drop(
+            ["Observer_name_1", "Observer_name_2"], axis=1, inplace=True
+        )
 
     # Remove time survey was recorded from date column
     all_fish_survey_data_df["Date"] = pd.to_datetime(
@@ -29,11 +30,12 @@ def pre_process_fish_data(all_fish_survey_data_df: pd.DataFrame) -> pd.DataFrame
     ).dt.floor("D")
 
     # Remove invalid surveys then drop column as it's no longer needed
-    all_fish_survey_data_df = all_fish_survey_data_df[
-        all_fish_survey_data_df["Survey_Status"] == 1
-    ]
-    all_fish_survey_data_df.drop(["Survey_Status"], axis=1, inplace=True)
-    # 108471 is number of valid surveys
+    if "Survey_Status" in all_fish_survey_data_df.columns:
+        all_fish_survey_data_df = all_fish_survey_data_df[
+            all_fish_survey_data_df["Survey_Status"] == 1
+        ]
+        all_fish_survey_data_df.drop(["Survey_Status"], axis=1, inplace=True)
+        # 108471 is number of valid surveys 
 
     # Remove surveys of fish size >120
     all_fish_survey_data_df = all_fish_survey_data_df[
@@ -50,6 +52,36 @@ def pre_process_fish_data(all_fish_survey_data_df: pd.DataFrame) -> pd.DataFrame
             average_size_list.append(sum(float_sizes) / 2)
     all_fish_survey_data_df["Size"] = average_size_list
     return all_fish_survey_data_df
+
+
+def check_all_constants_exist(all_fish_survey_data_df: pd.DataFrame) -> None:
+    """
+    Check that all constants used in the fish metrics calculations exist.
+    If any are missing, raise an error.
+    """
+    # Read in constants
+    constants = [
+        # "biomass_coeffs.csv",
+        "corallivore_fish.csv",
+        "detritivore_fish.csv",
+        "herbivore_fish.csv",
+        "omnivore_fish.csv",
+        "carnivore_fish.csv",
+    ]
+    all_constants = []
+    for constant in constants:
+        constant_list = pd.read_csv(f"data/constants/{constant}",header=None).iloc[:,0].to_list()
+        all_constants.extend(constant_list)
+    
+    # Get all unique species in the fish survey data
+    unique_species = all_fish_survey_data_df["Species"].unique()
+    # Check if all species in the fish survey data exist as constants
+    missing_species = list(set(unique_species) - set(all_constants))
+    if missing_species:
+        raise ValueError(
+            f"The following species in the fish survey data are not in the species lists: {missing_species}"
+        )
+    print("All constants exist in the fish survey data.")
 
 
 

@@ -2,5 +2,7 @@ Species that are in the survey data but we have no biomass coefficients for
 {‘Grouper - Brown-Marbled', 'Grouper - Barramundi', 'Sea Ray - Ribbontail', 'Sea Ray - Stingray', 'Rabbitfish - White Spotted', 'Angelfish - Two-Spined', 'Shark - Whale Shark', 'Sea Ray - Other', 'Long Jawed Mackerel', 'Emperor - Orange-Striped', 'Parrotfish - Humphead', 'Snapper - One-Spot’}
 
 
-
 Species we have biomass coefficients for but none of them are recorded in the survey data: {'Grouper', 'Snapper - One-spot', 'Tuna - Oriental Bonito', 'Snappers - Schooling', 'Parrotfish', 'Shark - Whale shark', 'Unicornfish - Schooling', 'Wrasse - Humphead', 'Sea ray - Ribbontail', 'Emperor - Orangestriped', 'Grouper - Barramundi Cod', 'Angelfish - Two Spined', 'Unicornfish - Spotted', 'Grouper - Brown-marbled', 'Wrasse', 'Sea Ray', 'Angelfish', 'Surgeonfish', 'Tuna - Long-Jawed Mackerel', 'Pufferfish', 'Parrotfish - Bumphead', 'Rabbitfish - White-Spotted', 'Triggerfish', 'Sea ray - Stingray'}
+
+
+Sea Ray - Other

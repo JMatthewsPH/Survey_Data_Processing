@@ -23,6 +23,9 @@ def calculate_fish_metrics(
 
     results_df = prepare_results_df(daily_fish_data_df)
     results_df = calculate_commercial_biomass(daily_fish_data_df, results_df)
+    results_df = calculate_total_fish_count_and_total_density(
+        daily_fish_data_df, results_df, daily_dive_numbers_df
+    )
     results_df = calculate_herbivore_density(
         daily_fish_data_df, results_df, daily_dive_numbers_df
     )
@@ -44,6 +47,34 @@ def calculate_fish_metrics(
         if period != "daily"
         else results_df
     )
+
+def calculate_total_fish_count_and_total_density(daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Calculate the total fish count and total density for each unique combination of Period and Site.
+
+    Parameters:
+    daily_fish_data_df (pd.DataFrame): The DataFrame containing fish data.
+    results_df (pd.DataFrame): The DataFrame containing the number of dives per day for each site.
+
+    Returns:
+    pd.DataFrame: A DataFrame with Period, Site, Total Fish Count, and Total Density.
+    """
+    # Calculate total fish count per site per day
+    total_fish_count = (
+        daily_fish_data_df.groupby(["Period", "Site"])["Total"]
+        .sum()
+        .reset_index()
+        .rename(columns={"Total": "Total Count"})
+    )
+
+    # Calculate total density by dividing total fish count by the number of dives
+    total_fish_count["Total Density"] = total_fish_count.apply(
+        lambda row: row["Total Count"] / dives_df.loc[(row["Period"], row["Site"])],
+        axis=1,
+    )
+
+    return pd.merge(total_fish_count, results_df)
 
 
 def calculate_commercial_biomass(
@@ -104,7 +135,7 @@ def calculate_herbivore_density(
     herbivore_fish_names = (
         pd.read_csv("data/constants/herbivore_fish.csv", header=None).squeeze().tolist()
     )
-    # Calculate herbivore density per site per day
+    # Calculate herbivore total counts per site per day
     herbivore_density = (
         daily_fish_data_df[daily_fish_data_df["Species"].isin(herbivore_fish_names)]
         .groupby(["Period", "Site"])["Total"]
@@ -113,7 +144,7 @@ def calculate_herbivore_density(
         .rename(columns={"Total": "Herbivore Density"})
     )
 
-    # Divide Herbivore Density by the number of dives
+    # Divide Herbivore total counts by the number of dives to get Herbivore Density
     herbivore_density["Herbivore Density"] = herbivore_density.apply(
         lambda row: row["Herbivore Density"]
         / dives_df.loc[(row["Period"], row["Site"])],
@@ -253,31 +284,13 @@ def calculate_biomass(daily_fish_data_df: pd.DataFrame) -> pd.DataFrame:
     biomass_coeffs = pd.read_csv(
         "data/constants/biomass_coeffs.csv", index_col="Species"
     )
-    # temperorary until we get the coeffs
-    species_with_no_biomass_coeffs = [
-        "Grouper - Brown-Marbled",
-        "Grouper - Barramundi",
-        "Sea Ray - Ribbontail",
-        "Sea Ray - Stingray",
-        "Rabbitfish - White Spotted",
-        "Angelfish - Two-Spined",
-        "Shark - Whale Shark",
-        "Sea Ray - Other",
-        "Long Jawed Mackerel",
-        "Emperor - Orange-Striped",
-        "Parrotfish - Humphead",
-        "Snapper - One-Spot",
-    ]
 
     # Replace the lambda function with a nested for loop to calculate biomass
     biomass_values = []
     for _, row in daily_fish_data_df.iterrows():
-        if row["Species"] not in species_with_no_biomass_coeffs:
-            coeff_a = biomass_coeffs.loc[row["Species"]]["Coeff_a"]
-            coeff_b = biomass_coeffs.loc[row["Species"]]["Coeff_b"]
-            biomass = row["Total"] * coeff_a * (row["Size"] ** coeff_b)
-        else:
-            biomass = 0
+        coeff_a = biomass_coeffs.loc[row["Species"]]["Coeff_a"]
+        coeff_b = biomass_coeffs.loc[row["Species"]]["Coeff_b"]
+        biomass = row["Total"] * coeff_a * (row["Size"] ** coeff_b)
         biomass_values.append(biomass)
 
     daily_fish_data_df["Total Biomass"] = biomass_values

@@ -1,5 +1,5 @@
 import pandas as pd
-from fish_pre_processing import pre_process_fish_data
+from fish_pre_processing import pre_process_fish_data, check_all_constants_exist
 from utils import (
     determine_number_of_dives_per_period,
     save_site_dataframes,
@@ -12,11 +12,13 @@ period = "seasonal"
 
 # Read in the all fish survey data from last season
 all_fish_survey_data_df = pd.read_csv(
-    "data/input/DBMCP_Fish_2017-08-01_2025-05-10_ALL.csv"
+    "data/input/fish_survey_data_dec2024_feb2025.csv"
 )
 print(all_fish_survey_data_df.head())
 print(len(all_fish_survey_data_df))
 
+# Check that all constants used in the fish metrics calculations exist
+check_all_constants_exist(all_fish_survey_data_df)
 # Pre-process the fish data to prepare data for metric calculations
 pre_processed_fish_df = pre_process_fish_data(all_fish_survey_data_df)
 print(len(pre_processed_fish_df))
