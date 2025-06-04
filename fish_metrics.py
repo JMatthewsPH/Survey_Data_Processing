@@ -5,7 +5,7 @@ from utils import prepare_results_df, add_periods
 def calculate_fish_metrics(
     pre_processed_fish_data_df: pd.DataFrame,
     daily_dive_numbers_df: pd.DataFrame,
-    period: str = "daily",
+    period: str,
 ) -> pd.DataFrame:
     """
     Calculate various fish metrics for each unique combination of Period and Site, or aggregated by month or season.
@@ -47,8 +47,6 @@ def calculate_fish_metrics(
 
     return (
         results_df.groupby(["Period", "Site"]).sum().reset_index()
-        if period != "daily"
-        else results_df
     )
 
 def calculate_total_count_and_density(daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame

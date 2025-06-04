@@ -61,8 +61,6 @@ def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
         time_df["Period"] = time_df["Date"].dt.to_period("M")
     elif period == "seasonal":
         time_df["Period"] = time_df["Date"].map(map_date_to_season)
-    else:
-        time_df["Period"] = time_df["Date"]
     return time_df
 
 
@@ -93,6 +91,9 @@ def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, separ
     # Order columns by season and year
     daily_fish_results_df["sort_key"] = daily_fish_results_df["Period"].apply(period_sort_key)
     daily_fish_results_df = daily_fish_results_df.sort_values("sort_key").drop(columns="sort_key")
+
+    # Round all values for 2 decimal places
+    daily_fish_results_df = daily_fish_results_df.round(2)
 
     output_dir = "data/output/"
     if separate_file_per_site:
