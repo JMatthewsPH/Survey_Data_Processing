@@ -83,7 +83,7 @@ def prepare_results_df(survey_data_df: pd.DataFrame) -> pd.DataFrame:
 
 
 # Create separate DataFrames for each site and save them as CSV files
-def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str):
+def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, separate_file_per_site: bool = True) -> None:
     """
     Create separate DataFrames for each site and save them as CSV files.
 
@@ -95,10 +95,16 @@ def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str):
     daily_fish_results_df = daily_fish_results_df.sort_values("sort_key").drop(columns="sort_key")
 
     output_dir = "data/output/"
-    for site, site_df in daily_fish_results_df.groupby("Site"):
-        site_filename = f"{output_dir}/{period}/{period}_fish_results_{site}.csv"
-        site_df.to_csv(site_filename, index=False)
-        print(f"Saved {site_filename}")
+    if separate_file_per_site:
+        for site, site_df in daily_fish_results_df.groupby("Site"):
+            site_filename = f"{output_dir}/{period}/{period}_fish_results_{site}.csv"
+            site_df.to_csv(site_filename, index=False)
+            print(f"Saved {site_filename}")
+    else:
+        daily_fish_results_df.groupby("Period")
+        filename = f"{output_dir}/{period}/{period}_fish_results_ALL_SITES.csv"
+        daily_fish_results_df.to_csv(filename, index=False)
+        print(f"Saved {filename}")
 
 
 def period_sort_key(period_str):
