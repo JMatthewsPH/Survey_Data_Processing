@@ -1,2 +1,2 @@
-Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Total Count,Total Density,Commercial Biomass,Total Biomass
-Winter 24/25,Salag MPA,11.944444444444445,14.222222222222221,4.277777777777778,77.27777777777777,491.44444444444446,10785,599.1666666666666,165598.6326317488,262450.3406319604
+Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Commercial Biomass,Commercial Density,Total Biomass,Total Biomass Density,Total Count,Total Density,Commercial Biomass Percentage
+Winter 24/25,Salag MPA,11.944444444444445,14.222222222222221,4.277777777777778,77.27777777777777,491.44444444444446,165.59863263174879,9.199924035097155,262.45034063196044,14.580574479553357,10785,599.1666666666666,63.097130006766186

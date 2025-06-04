@@ -1,2 +1,2 @@
-Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Total Count,Total Density,Commercial Biomass,Total Biomass
-Winter 24/25,Mojon MPA,7.5,11.75,18.75,174.25,475.75,2752,688.0,34577.92775935629,85161.89090432305
+Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Commercial Biomass,Commercial Density,Total Biomass,Total Biomass Density,Total Count,Total Density,Commercial Biomass Percentage
+Winter 24/25,Mojon MPA,7.5,11.75,18.75,174.25,475.75,34.577927759356285,8.644481939839071,85.16189090432306,21.290472726080765,2752,688.0,40.6025833764114

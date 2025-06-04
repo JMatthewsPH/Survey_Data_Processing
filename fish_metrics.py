@@ -22,10 +22,10 @@ def calculate_fish_metrics(
     daily_fish_data_df = add_periods(daily_fish_data_df, period)
 
     results_df = prepare_results_df(daily_fish_data_df)
-    results_df = calculate_commercial_biomass(daily_fish_data_df, results_df)
-    results_df = calculate_total_fish_count_and_total_density(
+    results_df = calculate_total_count_and_density(
         daily_fish_data_df, results_df, daily_dive_numbers_df
     )
+    results_df = calculate_biomass_metrics(daily_fish_data_df, results_df, daily_dive_numbers_df)
     results_df = calculate_herbivore_density(
         daily_fish_data_df, results_df, daily_dive_numbers_df
     )
@@ -48,7 +48,7 @@ def calculate_fish_metrics(
         else results_df
     )
 
-def calculate_total_fish_count_and_total_density(daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame
+def calculate_total_count_and_density(daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame
 ) -> pd.DataFrame:
     """
     Calculate the total fish count and total density for each unique combination of Period and Site.
@@ -76,9 +76,41 @@ def calculate_total_fish_count_and_total_density(daily_fish_data_df: pd.DataFram
 
     return pd.merge(total_fish_count, results_df)
 
+def calculate_biomass_metrics(daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Calculate the total and normalised biomass and commercial biomass for each unique 
+    combination of Period and Site. Divide by 1000
+
+    Parameters:
+    daily_fish_data_df (pd.DataFrame): The DataFrame containing fish data.
+    results_df (pd.DataFrame): The DataFrame containing the number of dives per day for each site.
+
+    Returns:
+    pd.DataFrame: A DataFrame with Period, Site, Total Biomass, and Total Density.
+    """
+    # Calculate total biomass per site per day
+    total_biomass = (
+        daily_fish_data_df.groupby(["Period", "Site"])["Total Biomass"]
+        .sum()
+        .reset_index()
+        .rename(columns={"Total Biomass": "Total Biomass"})
+    )
+    total_biomass["Total Biomass"] = total_biomass["Total Biomass"] / 1000  # Convert to kg
+
+    # Calculate total biomass density by dividing total biomass by the number of dives
+    total_biomass["Total Biomass Density"] = total_biomass.apply(
+        lambda row: row["Total Biomass"] / dives_df.loc[(row["Period"], row["Site"])],
+        axis=1,
+    )
+    results_df = pd.merge(total_biomass, results_df)
+    results_df = calculate_commercial_biomass(daily_fish_data_df, results_df, dives_df)
+
+    return results_df
+
 
 def calculate_commercial_biomass(
-    daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame
+    daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame
 ) -> pd.DataFrame:
     """
     Calculate the total commercial biomass for each unique combination of Period and Site.
@@ -104,16 +136,19 @@ def calculate_commercial_biomass(
         .rename(columns={"Total Biomass": "Commercial Biomass"})
     )
 
-    # Add Total Biomass column back to the DataFrame
-    commercial_biomass = commercial_biomass.merge(
-        daily_fish_data_df.groupby(["Period", "Site"])["Total Biomass"]
-        .sum()
-        .reset_index(),
-        on=["Period", "Site"],
-        suffixes=("", "_Total"),
-    )
+    commercial_biomass["Commercial Biomass"] = commercial_biomass["Commercial Biomass"] / 1000  # Convert to kg
 
-    return pd.merge(commercial_biomass, results_df)
+    # Calculate commercial density by dividing total fish count by the number of dives
+    commercial_biomass["Commercial Density"] = commercial_biomass.apply(
+        lambda row: row["Commercial Biomass"] / dives_df.loc[(row["Period"], row["Site"])],
+        axis=1,
+    )
+    results_df = pd.merge(commercial_biomass, results_df)
+
+    # Calculate percentage of total biomass that is commercial
+    results_df["Commercial Biomass Percentage"] = results_df["Commercial Biomass"] / results_df["Total Biomass"] * 100
+
+    return results_df
 
 
 def calculate_herbivore_density(

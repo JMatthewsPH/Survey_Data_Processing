@@ -1,2 +1,2 @@
-Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Total Count,Total Density,Commercial Biomass,Total Biomass
-Winter 24/25,Lutoban South MPA,9.222222222222221,11.555555555555555,8.666666666666666,46.611111111111114,307.3888888888889,6902,383.44444444444446,82626.6056671547,160687.64193176923
+Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Commercial Biomass,Commercial Density,Total Biomass,Total Biomass Density,Total Count,Total Density,Commercial Biomass Percentage
+Winter 24/25,Lutoban South MPA,9.222222222222221,11.555555555555555,8.666666666666666,46.611111111111114,307.3888888888889,82.62660566715469,4.590366981508594,160.68764193176924,8.927091218431624,6902,383.44444444444446,51.420634887553696

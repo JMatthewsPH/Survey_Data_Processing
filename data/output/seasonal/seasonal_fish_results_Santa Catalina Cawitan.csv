@@ -1,2 +1,2 @@
-Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Total Count,Total Density,Commercial Biomass,Total Biomass
-Winter 24/25,Santa Catalina Cawitan,11.0,18.5,6.5,23.0,52.5,223,111.5,2750.0137973044916,6109.527800699236
+Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Commercial Biomass,Commercial Density,Total Biomass,Total Biomass Density,Total Count,Total Density,Commercial Biomass Percentage
+Winter 24/25,Santa Catalina Cawitan,11.0,18.5,6.5,23.0,52.5,2.750013797304492,1.375006898652246,6.109527800699236,3.054763900349618,223,111.5,45.011887776167455

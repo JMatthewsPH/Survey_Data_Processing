@@ -1,2 +1,2 @@
-Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Total Count,Total Density,Commercial Biomass,Total Biomass
-Winter 24/25,Kookoos,11.11111111111111,11.61111111111111,7.222222222222222,47.833333333333336,485.1666666666667,10133,562.9444444444445,95587.85356067267,245530.41139941008
+Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Commercial Biomass,Commercial Density,Total Biomass,Total Biomass Density,Total Count,Total Density,Commercial Biomass Percentage
+Winter 24/25,Kookoos,11.11111111111111,11.61111111111111,7.222222222222222,47.833333333333336,485.1666666666667,95.58785356067267,5.31043630892626,245.53041139941007,13.640578411078337,10133,562.9444444444445,38.931166618369595

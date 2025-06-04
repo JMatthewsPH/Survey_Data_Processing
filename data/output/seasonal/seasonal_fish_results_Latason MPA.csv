@@ -1,2 +1,2 @@
-Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Total Count,Total Density,Commercial Biomass,Total Biomass
-Winter 24/25,Latason MPA,8.23076923076923,7.3076923076923075,8.0,16.53846153846154,319.6923076923077,4677,359.7692307692308,16913.350899859837,65818.63242591188
+Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Commercial Biomass,Commercial Density,Total Biomass,Total Biomass Density,Total Count,Total Density,Commercial Biomass Percentage
+Winter 24/25,Latason MPA,8.23076923076923,7.3076923076923075,8.0,16.53846153846154,319.6923076923077,16.913350899859836,1.3010269922969104,65.81863242591189,5.062971725070145,4677,359.7692307692308,25.69690416904087

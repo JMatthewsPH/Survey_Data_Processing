@@ -1,2 +1,2 @@
-Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Total Count,Total Density,Commercial Biomass,Total Biomass
-Winter 24/25,Maluay Malatapay MPA,7.222222222222222,15.222222222222221,11.944444444444445,82.05555555555556,407.55555555555554,9432,524.0,272127.5796468048,376015.1459620467
+Period,Site,Corallivore Density,Detritivore Density,Omnivore Density,Carnivore Density,Herbivore Density,Commercial Biomass,Commercial Density,Total Biomass,Total Biomass Density,Total Count,Total Density,Commercial Biomass Percentage
+Winter 24/25,Maluay Malatapay MPA,7.222222222222222,15.222222222222221,11.944444444444445,82.05555555555556,407.55555555555554,272.1275796468048,15.118198869266934,376.0151459620467,20.889730331224815,9432,524.0,72.37144103612043
