@@ -181,10 +181,6 @@ def calculate_commercial_biomass(
         axis=1,
     )
     results_df = pd.merge(commercial_biomass, results_df)
-
-    # Calculate percentage of total biomass that is commercial
-    results_df["Commercial Biomass Percentage"] = results_df["Commercial Biomass"] / results_df["Total Biomass"] * 100
-
     return results_df
 
 
