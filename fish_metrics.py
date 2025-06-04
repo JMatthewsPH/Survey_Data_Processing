@@ -76,8 +76,8 @@ def calculate_total_count_and_density(daily_fish_data_df: pd.DataFrame, results_
         lambda row: row["Total Count"] / dives_df.loc[(row["Period"], row["Site"])],
         axis=1,
     )
-
-    return pd.merge(total_fish_count, results_df)
+    results_df["Total Density"] = total_fish_count["Total Density"]
+    return results_df
 
 def calculate_commercial_count_and_density(daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame
 ) -> pd.DataFrame:
@@ -111,7 +111,8 @@ def calculate_commercial_count_and_density(daily_fish_data_df: pd.DataFrame, res
         lambda row: row["Commercial Count"] / dives_df.loc[(row["Period"], row["Site"])],
         axis=1,
     )
-    return pd.merge(commercial_count, results_df)
+    results_df["Commercial Density"] = commercial_count["Commercial Density"]
+    return results_df
 
 def calculate_biomass_metrics(daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame
 ) -> pd.DataFrame:
@@ -140,7 +141,7 @@ def calculate_biomass_metrics(daily_fish_data_df: pd.DataFrame, results_df: pd.D
         lambda row: row["Total Biomass"] / dives_df.loc[(row["Period"], row["Site"])],
         axis=1,
     )
-    results_df = pd.merge(total_biomass, results_df)
+    results_df["Total Biomass Density"] = total_biomass["Total Biomass Density"]
     results_df = calculate_commercial_biomass(daily_fish_data_df, results_df, dives_df)
 
     return results_df
@@ -180,7 +181,8 @@ def calculate_commercial_biomass(
         lambda row: row["Commercial Biomass"] / dives_df.loc[(row["Period"], row["Site"])],
         axis=1,
     )
-    results_df = pd.merge(commercial_biomass, results_df)
+    
+    results_df["Commercial Biomass Density"] = commercial_biomass["Commercial Biomass Density"]
     return results_df
 
 

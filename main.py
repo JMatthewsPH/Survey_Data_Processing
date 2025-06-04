@@ -12,7 +12,7 @@ period = "seasonal" # seasonal or monthly
 
 ## Read in survey data 
 all_fish_survey_data_df = pd.read_csv(
-    "data/input/fish_survey_data_dec2024_feb2025.csv"
+    "data/input/DBMCP_Fish_2024-12-01_2025-02-28.csv"
 )
 # all_invert_survey_data_df = pd.read_csv(
 #     "data/input/inverts_survey_data_dec2024_feb2025.csv"
@@ -29,7 +29,7 @@ pre_processed_fish_df = pre_process_data(all_fish_survey_data_df)
 # fish_and_inverts_df = pd.concat(
 #     [pre_processed_fish_df, pre_processed_inverts_df], ignore_index=True
 # )
-# # check_all_constants_exist(fish_and_inverts_df)
+check_all_constants_exist(pre_processed_fish_df)
 
 ## Calculate metrics
 # First, calculate the number of dives per day for each site
