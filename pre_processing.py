@@ -96,7 +96,7 @@ def check_all_constants_exist_for_fish(survey_data_df: pd.DataFrame) -> None:
         print("All fish species in the survey data have biomass coefficients.")
 
 
-def check_all_constants_exist_for_inverts(survey_data_df: pd.DataFrame) -> None:
+def check_all_constants_exist_for_inverts(survey_data_df: pd.DataFrame, include_biomass: bool) -> None:
     """
     Check that all constants used in the inverts metrics calculations exist.
     If any are missing, raise an error.
@@ -126,14 +126,15 @@ def check_all_constants_exist_for_inverts(survey_data_df: pd.DataFrame) -> None:
     else:
         print("All consumer constants exists for invertebrates in the survey data.")
         
-    # Check we have biomass coefficients for all species
-    biomass_coeffs = pd.read_csv("data/constants/biomass_coeffs_inverts.csv", index_col="Species")
-    missing_biomass_coeffs = list(set(unique_species) - set(biomass_coeffs.index))
-    if missing_biomass_coeffs:
-        raise ValueError(
-            f"The following invertebrate species in the survey data are missing biomass coefficients: {missing_biomass_coeffs}"
-        )
-    else:
-        print("All invertebrate species in the survey data have biomass coefficients.")
+    # Check we have biomass coefficients for all species IF include_biomass is True
+    if include_biomass:
+        biomass_coeffs = pd.read_csv("data/constants/biomass_coeffs_inverts.csv", index_col="Species")
+        missing_biomass_coeffs = list(set(unique_species) - set(biomass_coeffs.index))
+        if missing_biomass_coeffs:
+            raise ValueError(
+                f"The following invertebrate species in the survey data are missing biomass coefficients: {missing_biomass_coeffs}"
+            )
+        else:
+            print("All invertebrate species in the survey data have biomass coefficients.")
 
 

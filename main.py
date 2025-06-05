@@ -44,7 +44,7 @@ all_invert_survey_data_df = pd.read_csv(
 ## Pre-process survey data
 pre_processed_inverts_df = pre_process_data(all_invert_survey_data_df)
 # Check that all constants used in the fish metrics calculations exist
-check_all_constants_exist_for_inverts(pre_processed_inverts_df)
+check_all_constants_exist_for_inverts(pre_processed_inverts_df, include_biomass=False)
 ## Calculate metrics
 # First, calculate the number of dives per day for each site
 inverts_daily_dive_numbers_df = determine_number_of_dives_per_period(pre_processed_inverts_df, period)
