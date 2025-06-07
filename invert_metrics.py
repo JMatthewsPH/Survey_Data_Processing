@@ -2,9 +2,8 @@ import pandas as pd
 from utils import prepare_results_df, add_periods, create_daily_df
 from fish_and_inverts_shared_metrics import (
     calculate_biomass,
-    calculate_total_count_and_density,
-    calculate_commercial_count_and_density,
-    calculate_biomass_metrics,  
+    calculate_total_biomass_and_density,
+    calculate_total_count_and_density, 
     calculate_herbivore_density,
     calculate_carnivore_density,
     calculate_omnivore_density,
@@ -46,7 +45,7 @@ def calculate_inverts_metrics(
     # )
     # TODO: Remove this boolean when biomass coeficients for inverts become available
     if include_biomass:
-        results_df = calculate_biomass_metrics(daily_inverts_data_df, results_df, daily_dive_numbers_df)
+        results_df = calculate_total_biomass_and_density(daily_inverts_data_df, results_df, daily_dive_numbers_df)
 
     results_df = calculate_herbivore_density(
         daily_inverts_data_df, results_df, daily_dive_numbers_df, "inverts"
