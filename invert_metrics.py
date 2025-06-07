@@ -31,7 +31,7 @@ def calculate_inverts_metrics(
     Returns:
     pd.DataFrame: A DataFrame with aggregated metrics based on the specified period.
     """
-    daily_inverts_data_df = create_daily_df(pre_processed_inverts_data_df)
+    daily_inverts_data_df = create_daily_df(pre_processed_inverts_data_df, "inverts")
     # TODO: Remove this boolean when biomass coeficients for inverts become available
     if include_biomass:
         daily_inverts_data_df = calculate_biomass(daily_inverts_data_df, "data/constants/biomass_coeffs_inverts.csv")

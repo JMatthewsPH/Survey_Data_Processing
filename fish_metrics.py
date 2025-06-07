@@ -29,7 +29,7 @@ def calculate_fish_metrics(
     Returns:
     pd.DataFrame: A DataFrame with aggregated metrics based on the specified period.
     """
-    daily_fish_data_df = create_daily_df(pre_processed_fish_data_df)
+    daily_fish_data_df = create_daily_df(pre_processed_fish_data_df, "fish")
     daily_fish_data_df = calculate_biomass(daily_fish_data_df, "data/constants/biomass_coeffs_fish.csv")
     daily_fish_data_df = add_periods(daily_fish_data_df, period)
 

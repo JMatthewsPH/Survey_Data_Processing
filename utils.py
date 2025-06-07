@@ -63,7 +63,7 @@ def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
         time_df["Period"] = time_df["Date"].map(map_date_to_season)
     return time_df
 
-def create_daily_df(all_survey_data_df: pd.DataFrame) -> pd.DataFrame:
+def create_daily_df(all_survey_data_df: pd.DataFrame, group: str) -> pd.DataFrame:
     """
     Aggregate all fish survey data to create a dataframe that shows the total biomass
     and number of fish spotted for each fish category of each size seen on each day at
@@ -76,11 +76,18 @@ def create_daily_df(all_survey_data_df: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame: A DataFrame containing the total biomass and number of fish spotted
     for each fish category of each size per day and dive site
     """
-    aggregated_df = (
-        all_survey_data_df.groupby(["Date", "Site", "Species", "Size"])
-        .agg({"Total": "sum"})
-        .reset_index()
-    )
+    if group != "subs":
+        aggregated_df = (
+            all_survey_data_df.groupby(["Date", "Site", "Species", "Size"])
+            .agg({"Total": "sum"})
+            .reset_index()
+        )
+    else:
+        aggregated_df = (
+            all_survey_data_df.groupby(["Date", "Site", "Group", "Status"])
+            .agg({"Total": "sum"})
+            .reset_index()
+        )
     return aggregated_df
 
 def prepare_results_df(survey_data_df: pd.DataFrame) -> pd.DataFrame:
@@ -100,7 +107,7 @@ def prepare_results_df(survey_data_df: pd.DataFrame) -> pd.DataFrame:
 
 
 # Create separate DataFrames for each site and save them as CSV files
-def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, type: str, separate_file_per_site: bool = True) -> None:
+def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, group: str, separate_file_per_site: bool = True) -> None:
     """
     Create separate DataFrames for each site and save them as CSV files.
 
@@ -117,12 +124,12 @@ def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, type:
     output_dir = "data/output/"
     if separate_file_per_site:
         for site, site_df in daily_fish_results_df.groupby("Site"):
-            site_filename = f"{output_dir}/{period}/{period}_{type}_results_{site}.csv"
+            site_filename = f"{output_dir}/{period}/{period}_{group}_results_{site}.csv"
             site_df.to_csv(site_filename, index=False)
             print(f"Saved {site_filename}")
     else:
         daily_fish_results_df.groupby("Period")
-        filename = f"{output_dir}/{period}/{period}_{type}_results_ALL_SITES.csv"
+        filename = f"{output_dir}/{period}/{period}_{group}_results_ALL_SITES.csv"
         daily_fish_results_df.to_csv(filename, index=False)
         print(f"Saved {filename}")
 

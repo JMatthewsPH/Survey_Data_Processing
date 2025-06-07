@@ -2,7 +2,7 @@ import pandas as pd
 
 def calculate_biomass(daily_data_df: pd.DataFrame, biomass_coeffs_file_url: str) -> pd.DataFrame:
     """
-    Calculate the biomass per fish type in the dataset.
+    Calculate the biomass per fish group in the dataset.
 
     Parameters:
     df (pd.DataFrame): The DataFrame containing fish categry and size data per site per day
@@ -166,7 +166,7 @@ def calculate_herbivore_density(
     daily_fish_data_df: pd.DataFrame,
     results_df: pd.DataFrame,
     dives_df: pd.DataFrame,
-    type: str
+    group: str
 ) -> pd.DataFrame:
     """
     Calculate the total herbivore density for each unique combination of Period and Site.
@@ -175,13 +175,13 @@ def calculate_herbivore_density(
     daily_fish_data_df (pd.DataFrame): The DataFrame containing fish data.
     herbivore_fish_names (list): A list of species names considered herbivores.
     dives_df (pd.DataFrame): The DataFrame containing the number of dives per day for each site.
-    type (str): Either fish or inverts, used to determine the file path for herbivore fish names.
+    group (str): Either fish or inverts, used to determine the file path for herbivore fish names.
 
     Returns:
     pd.DataFrame: A DataFrame with Period, Site, and the summed herbivore density.
     """
     herbivore_fish_names = (
-        pd.read_csv(f"data/constants/herbivore_{type}.csv", header=None).loc[:,0].tolist()
+        pd.read_csv(f"data/constants/herbivore_{group}.csv", header=None).loc[:,0].tolist()
     )
     # Calculate herbivore total counts per site per day
     herbivore_density = (
@@ -199,17 +199,17 @@ def calculate_herbivore_density(
         axis=1,
     )
 
-    return pd.merge(herbivore_density, results_df)
+    return pd.merge(herbivore_density, results_df, "right").fillna(0)
 
 
 def calculate_carnivore_density(
     daily_fish_data_df: pd.DataFrame,
     results_df: pd.DataFrame,
     dives_df: pd.DataFrame,
-    type: str
+    group: str
 ) -> pd.DataFrame:
     carnivore_fish_names = (
-        pd.read_csv(f"data/constants/carnivore_{type}.csv", header=None).loc[:,0].tolist()
+        pd.read_csv(f"data/constants/carnivore_{group}.csv", header=None).loc[:,0].tolist()
     )
     carnivore_density = (
         daily_fish_data_df[daily_fish_data_df["Species"].isin(carnivore_fish_names)]
@@ -223,17 +223,17 @@ def calculate_carnivore_density(
         / dives_df.loc[(row["Period"], row["Site"])],
         axis=1,
     )
-    return pd.merge(carnivore_density, results_df)
+    return pd.merge(carnivore_density, results_df, "right").fillna(0)
 
 
 def calculate_omnivore_density(
     daily_fish_data_df: pd.DataFrame,
     results_df: pd.DataFrame,
     dives_df: pd.DataFrame,
-    type: str
+    group: str
 ) -> pd.DataFrame:
     omnivore_fish_names = (
-        pd.read_csv(f"data/constants/omnivore_{type}.csv", header=None).loc[:,0].tolist()
+        pd.read_csv(f"data/constants/omnivore_{group}.csv", header=None).loc[:,0].tolist()
     )
     omnivore_density = (
         daily_fish_data_df[daily_fish_data_df["Species"].isin(omnivore_fish_names)]
@@ -247,17 +247,17 @@ def calculate_omnivore_density(
         / dives_df.loc[(row["Period"], row["Site"])],
         axis=1,
     )
-    return pd.merge(omnivore_density, results_df)
+    return pd.merge(omnivore_density, results_df, "right").fillna(0)
 
 
 def calculate_detritivore_density(
     daily_fish_data_df: pd.DataFrame,
     results_df: pd.DataFrame,
     dives_df: pd.DataFrame,
-    type: str
+    group: str
 ) -> pd.DataFrame:
     detritivore_fish_names = (
-        pd.read_csv(f"data/constants/detritivore_{type}.csv", header=None)
+        pd.read_csv(f"data/constants/detritivore_{group}.csv", header=None)
         .loc[:,0].tolist()
     )
     detritivore_density = (
@@ -272,16 +272,16 @@ def calculate_detritivore_density(
         / dives_df.loc[(row["Period"], row["Site"])],
         axis=1,
     )
-    return pd.merge(detritivore_density, results_df)
+    return pd.merge(detritivore_density, results_df, "right").fillna(0)
 
 
 def calculate_corallivore_density(
     daily_fish_data_df: pd.DataFrame,
     results_df: pd.DataFrame,
     dives_df: pd.DataFrame,
-    type: str
+    group: str
 ) -> pd.DataFrame:
-    corallivore_fish_names = pd.read_csv(f"data/constants/corallivore_{type}.csv", header=None).loc[:,0].tolist()
+    corallivore_fish_names = pd.read_csv(f"data/constants/corallivore_{group}.csv", header=None).loc[:,0].tolist()
     corallivore_density = (
         daily_fish_data_df[daily_fish_data_df["Species"].isin(corallivore_fish_names)]
         .groupby(["Period", "Site"])["Total"]
@@ -294,4 +294,4 @@ def calculate_corallivore_density(
         / dives_df.loc[(row["Period"], row["Site"])],
         axis=1,
     )
-    return pd.merge(corallivore_density, results_df)
+    return pd.merge(corallivore_density, results_df, "right").fillna(0)

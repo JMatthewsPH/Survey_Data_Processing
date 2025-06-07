@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def pre_process_data(survey_data_df: pd.DataFrame) -> pd.DataFrame:
+def pre_process_data(survey_data_df: pd.DataFrame, group: str) -> pd.DataFrame:
     """
     Process survey data to:
     - remove diver/observer names
@@ -23,6 +23,9 @@ def pre_process_data(survey_data_df: pd.DataFrame) -> pd.DataFrame:
         survey_data_df.drop(
             ["Observer_name_1", "Observer_name_2"], axis=1, inplace=True
         )
+    
+    # Remove redundant Diver count columns (Total includes the total for both)
+    survey_data_df.drop(["Diver_1_count", "Diver_2_count"], axis=1, inplace=True)
 
     # Remove time survey was recorded from date column
     survey_data_df["Date"] = pd.to_datetime(
@@ -36,22 +39,21 @@ def pre_process_data(survey_data_df: pd.DataFrame) -> pd.DataFrame:
         ]
         survey_data_df.drop(["Survey_Status"], axis=1, inplace=True)
 
-    # Remove surveys of fish size >120
-    survey_data_df = survey_data_df[
-        survey_data_df["Size"] != ">120"
-    ]
+    if group != "subs":
+        # Remove surveys of fish size >120
+        survey_data_df = survey_data_df[
+            survey_data_df["Size"] != ">120"
+        ]
 
-    # Average the size range
-    size_list = [survey_data_df["Size"].str.split("-")]
-    average_size_list = []
-    for row in size_list:
-        for sizes in row:
-            float_sizes = [float(i) for i in sizes]
-            average_size_list.append(sum(float_sizes) / 2)
-    survey_data_df["Size"] = average_size_list
+        # Average the size range
+        size_list = [survey_data_df["Size"].str.split("-")]
+        average_size_list = []
+        for row in size_list:
+            for sizes in row:
+                float_sizes = [float(i) for i in sizes]
+                average_size_list.append(sum(float_sizes) / 2)
+        survey_data_df["Size"] = average_size_list
 
-    # Remove redundant Diver count columns (Total includes the total for both)
-    survey_data_df.drop(["Diver_1_count", "Diver_2_count"], axis=1, inplace=True)
     return survey_data_df
 
 
