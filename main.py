@@ -38,6 +38,7 @@ save_site_dataframes(fish_results_df, period, group="fish")
 
 #-------------------------------------------------------------------------------------------
 ### INVERTS
+## WHEN BIOMASS COEFFICIENTS BECOME AVAILABLE FOR INVERTS, YOU NEED TO CHANGE TWO THINGS BELOW
 ## Read in survey data 
 all_invert_survey_data_df = pd.read_csv(
     "data/input/DBMCP_Inverts_2017-08-01_2025-05-31.csv"
@@ -45,14 +46,14 @@ all_invert_survey_data_df = pd.read_csv(
 ## Pre-process survey data
 pre_processed_inverts_df = pre_process_data(all_invert_survey_data_df, group="inverts")
 # Check that all constants used in the fish metrics calculations exist
-check_all_constants_exist_for_inverts(pre_processed_inverts_df, include_biomass=False)
+check_all_constants_exist_for_inverts(pre_processed_inverts_df, include_biomass=False) # <- CHANGE THIS TO TRUE
 ## Calculate metrics
 # First, calculate the number of dives per day for each site
 inverts_daily_dive_numbers_df = determine_number_of_dives_per_period(pre_processed_inverts_df, period)
 # Calculate metrics
 inverts_results_df = calculate_inverts_metrics(
     pre_processed_inverts_df, inverts_daily_dive_numbers_df, period, include_biomass=False
-)
+) # <- CHANGE THIS TO TRUE
 ## Save results to CSV
 save_site_dataframes(inverts_results_df, period, group="inverts")
 
