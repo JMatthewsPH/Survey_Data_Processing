@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+import os
 
 
 def determine_number_of_dives_per_period(
@@ -107,7 +108,7 @@ def prepare_results_df(survey_data_df: pd.DataFrame) -> pd.DataFrame:
 
 
 # Create separate DataFrames for each site and save them as CSV files
-def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, group: str, separate_file_per_site: bool = True) -> None:
+def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, group: str) -> None:
     """
     Create separate DataFrames for each site and save them as CSV files.
 
@@ -121,17 +122,13 @@ def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, group
     # Round all values for 2 decimal places
     daily_fish_results_df = daily_fish_results_df.round(2)
 
-    output_dir = "data/output/"
-    if separate_file_per_site:
-        for site, site_df in daily_fish_results_df.groupby("Site"):
-            site_filename = f"{output_dir}/{period}/{period}_{group}_results_{site}.csv"
-            site_df.to_csv(site_filename, index=False)
-            print(f"Saved {site_filename}")
-    else:
-        daily_fish_results_df.groupby("Period")
-        filename = f"{output_dir}/{period}/{period}_{group}_results_ALL_SITES.csv"
-        daily_fish_results_df.to_csv(filename, index=False)
-        print(f"Saved {filename}")
+    output_dir = "data/output"
+    if not os.path.exists(f"{output_dir}/{group}/{period}"):
+        os.makedirs(f"{output_dir}/{group}/{period}")
+    for site, site_df in daily_fish_results_df.groupby("Site"):
+        site_filename = f"{output_dir}/{group}/{period}/{site}.csv"
+        site_df.to_csv(site_filename, index=False)
+        print(f"Saved {site_filename}")
 
 
 def period_sort_key(period_str):
