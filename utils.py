@@ -1,6 +1,8 @@
 import pandas as pd
 import re
 import os
+import glob
+from pathlib import Path
 
 
 def determine_number_of_dives_per_period(
@@ -150,3 +152,51 @@ def period_sort_key(period_str):
     season_order = {"Winter": 4, "Spring": 1, "Summer": 2, "Autumn": 3}
     s_order = season_order.get(season, 99)
     return (year, s_order)
+
+
+def find_latest_data_files(input_dir: str = "data/input") -> dict:
+    """
+    Automatically find the latest data files in the input directory.
+    
+    Parameters:
+    input_dir (str): Path to the input directory containing data files.
+    
+    Returns:
+    dict: Dictionary with file types as keys and file paths as values.
+    """
+    input_path = Path(input_dir)
+    
+    # Define file patterns for each data type
+    file_patterns = {
+        'fish': ['DBMCP_Fish_*.csv', 'fish_*.csv'],
+        'inverts': ['DBMCP_Inverts_*.csv', 'inverts_*.csv'],
+        'predation': ['DBMCP_Predation_*.csv', 'predation_*.csv'],
+        'subs': ['DBMCP_Substrates_*.csv', 'subs_*.csv', 'substrates_*.csv']
+    }
+    
+    found_files = {}
+    
+    for data_type, patterns in file_patterns.items():
+        latest_file = None
+        latest_mtime = 0
+        
+        for pattern in patterns:
+            # Search for files matching the pattern
+            matching_files = list(input_path.glob(pattern))
+            
+            for file_path in matching_files:
+                # Get file modification time
+                mtime = file_path.stat().st_mtime
+                
+                # Keep track of the most recent file
+                if mtime > latest_mtime:
+                    latest_mtime = mtime
+                    latest_file = file_path
+        
+        if latest_file:
+            found_files[data_type] = str(latest_file)
+            print(f"Found {data_type} data file: {latest_file.name}")
+        else:
+            print(f"Warning: No {data_type} data file found matching patterns: {patterns}")
+    
+    return found_files

@@ -4,6 +4,7 @@ from subs_metrics import calculate_subs_metrics
 from utils import (
     determine_number_of_dives_per_period,
     save_site_dataframes,
+    find_latest_data_files,
 )
 from fish_metrics import (
     calculate_fish_metrics,
@@ -14,12 +15,17 @@ from invert_metrics import (
 
 period = "seasonal" # seasonal or monthly
 
+# Automatically find the latest data files
+print("=== AUTOMATICALLY DETECTING LATEST DATA FILES ===")
+data_files = find_latest_data_files()
+print("=" * 50)
+
 ### FISH
 
 ## Read in survey data 
-all_fish_survey_data_df = pd.read_csv(
-    "data/input/DBMCP_Fish_2017-08-01_2025-08-31.csv"
-)
+if 'fish' not in data_files:
+    raise FileNotFoundError("No fish data file found in data/input directory")
+all_fish_survey_data_df = pd.read_csv(data_files['fish'])
 
 ## Pre-process survey data
 pre_processed_fish_df = pre_process_data(all_fish_survey_data_df, group="fish")
@@ -40,9 +46,9 @@ save_site_dataframes(fish_results_df, period, group="fish")
 ### INVERTS
 ## WHEN BIOMASS COEFFICIENTS BECOME AVAILABLE FOR INVERTS, YOU NEED TO CHANGE TWO THINGS BELOW
 ## Read in survey data 
-all_invert_survey_data_df = pd.read_csv(
-    "data/input/DBMCP_Inverts_2017-08-01_2025-08-31.csv"
-)
+if 'inverts' not in data_files:
+    raise FileNotFoundError("No inverts data file found in data/input directory")
+all_invert_survey_data_df = pd.read_csv(data_files['inverts'])
 ## Pre-process survey data
 pre_processed_inverts_df = pre_process_data(all_invert_survey_data_df, group="inverts")
 # Check that all constants used in the fish metrics calculations exist
@@ -60,9 +66,9 @@ save_site_dataframes(inverts_results_df, period, group="inverts")
 #-------------------------------------------------------------------------------------------
 ### SUBS
 ## Read in survey data 
-all_subs_survey_data_df = pd.read_csv(
-    "data/input/DBMCP_Substrates_2017-08-01_2025-08-31.csv"
-)
+if 'subs' not in data_files:
+    raise FileNotFoundError("No substrate data file found in data/input directory")
+all_subs_survey_data_df = pd.read_csv(data_files['subs'])
 ## Pre-process survey data
 pre_processed_subs_df = pre_process_data(all_subs_survey_data_df, group="subs")
 
