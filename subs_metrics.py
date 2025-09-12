@@ -47,10 +47,9 @@ def calculate_hard_coral_cover(daily_subs_data_df, results_df, daily_dive_number
         .rename(columns={"Total": "Hard Coral Cover"})
     )
 
-    # Normalise by the number of dives
+    # Normalise by the number of dives and convert to percentage (divide by 120 points per transect)
     hard_coral_cover["Hard Coral Cover"] = hard_coral_cover.apply(
-        lambda row: row["Hard Coral Cover"]
-        / daily_dive_numbers_df.loc[(row["Period"], row["Site"])],
+        lambda row: (row["Hard Coral Cover"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
     return pd.merge(hard_coral_cover, results_df, "right").fillna(0)
@@ -76,10 +75,9 @@ def calculate_soft_coral_cover(daily_subs_data_df, results_df, daily_dive_number
         .rename(columns={"Total": "Soft Coral Cover"})
     )
 
-    # Normalise by the number of dives
+    # Normalise by the number of dives and convert to percentage (divide by 120 points per transect)
     soft_coral_cover["Soft Coral Cover"] = soft_coral_cover.apply(
-        lambda row: row["Soft Coral Cover"]
-        / daily_dive_numbers_df.loc[(row["Period"], row["Site"])],
+        lambda row: (row["Soft Coral Cover"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
     return pd.merge(soft_coral_cover, results_df, "right").fillna(0)
@@ -108,10 +106,9 @@ def calculate_fresh_algae_cover(daily_subs_data_df, results_df, daily_dive_numbe
         .rename(columns={"Total": "Fresh Algae Cover"})
     )
 
-    # Normalise by the number of dives
+    # Normalise by the number of dives and convert to percentage (divide by 120 points per transect)
     fresh_algae_cover["Fresh Algae Cover"] = fresh_algae_cover.apply(
-        lambda row: row["Fresh Algae Cover"]
-        / daily_dive_numbers_df.loc[(row["Period"], row["Site"])],
+        lambda row: (row["Fresh Algae Cover"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
     return pd.merge(fresh_algae_cover, results_df, "right").fillna(0)
@@ -137,10 +134,9 @@ def calculate_rubber_cover(daily_subs_data_df, results_df, daily_dive_numbers_df
         .rename(columns={"Total": "Rubble Cover"})
     )
 
-    # Normalise by the number of dives
+    # Normalise by the number of dives and convert to percentage (divide by 120 points per transect)
     rubble_cover["Rubble Cover"] = rubble_cover.apply(
-        lambda row: row["Rubble Cover"]
-        / daily_dive_numbers_df.loc[(row["Period"], row["Site"])],
+        lambda row: (row["Rubble Cover"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
     return pd.merge(rubble_cover, results_df, "right").fillna(0)
@@ -177,8 +173,7 @@ def calculate_bleaching(daily_subs_data_df, results_df, daily_dive_numbers_df):
     results_df = pd.merge(results_df, partially_bleached_cover, how="left").fillna(0)
 
     results_df["Bleaching"] = results_df.apply(
-        lambda row: (row["Fully Bleached"] + row["Partially Bleached"]/2)
-        / daily_dive_numbers_df.loc[(row["Period"], row["Site"])],
+        lambda row: ((row["Fully Bleached"] + row["Partially Bleached"]/2) / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
     results_df.drop(["Fully Bleached", "Partially Bleached"], axis=1, inplace=True)

@@ -131,7 +131,12 @@ def calculate_commercial_biomass(
         axis=1,
     )
     
-    results_df["Commercial Biomass Density"] = commercial_biomass["Commercial Biomass Density"]
+    # Merge the commercial biomass density with results_df
+    results_df = results_df.merge(
+        commercial_biomass[["Period", "Site", "Commercial Biomass Density"]], 
+        on=["Period", "Site"], 
+        how="left"
+    )
     return results_df
 
     

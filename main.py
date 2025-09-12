@@ -18,7 +18,7 @@ period = "seasonal" # seasonal or monthly
 
 ## Read in survey data 
 all_fish_survey_data_df = pd.read_csv(
-    "data/input/DBMCP_Fish_2017-08-01_2025-05-31.csv"
+    "data/input/DBMCP_Fish_2017-08-01_2025-08-31.csv"
 )
 
 ## Pre-process survey data
@@ -41,7 +41,7 @@ save_site_dataframes(fish_results_df, period, group="fish")
 ## WHEN BIOMASS COEFFICIENTS BECOME AVAILABLE FOR INVERTS, YOU NEED TO CHANGE TWO THINGS BELOW
 ## Read in survey data 
 all_invert_survey_data_df = pd.read_csv(
-    "data/input/DBMCP_Inverts_2017-08-01_2025-05-31.csv"
+    "data/input/DBMCP_Inverts_2017-08-01_2025-08-31.csv"
 )
 ## Pre-process survey data
 pre_processed_inverts_df = pre_process_data(all_invert_survey_data_df, group="inverts")
@@ -61,7 +61,7 @@ save_site_dataframes(inverts_results_df, period, group="inverts")
 ### SUBS
 ## Read in survey data 
 all_subs_survey_data_df = pd.read_csv(
-    "data/input/DBMCP_Subs_2017-08-01_2025-05-31.csv"
+    "data/input/DBMCP_Substrates_2017-08-01_2025-08-31.csv"
 )
 ## Pre-process survey data
 pre_processed_subs_df = pre_process_data(all_subs_survey_data_df, group="subs")
