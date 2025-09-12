@@ -52,7 +52,13 @@ def calculate_total_count_and_density(daily_survey_data_df: pd.DataFrame, result
         lambda row: row["Total Count"] / dives_df.loc[(row["Period"], row["Site"])],
         axis=1,
     )
-    results_df["Total Density"] = total_count["Total Density"]
+    
+    # Merge the total density with results_df
+    results_df = results_df.merge(
+        total_count[["Period", "Site", "Total Density"]], 
+        on=["Period", "Site"], 
+        how="left"
+    )
     return results_df
 
 def calculate_commercial_count_and_density(daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame
@@ -117,7 +123,13 @@ def calculate_total_biomass_and_density(daily_survey_data_df: pd.DataFrame, resu
         lambda row: row["Total Biomass"] / dives_df.loc[(row["Period"], row["Site"])],
         axis=1,
     )
-    results_df["Total Biomass Density"] = total_biomass["Total Biomass Density"]
+    
+    # Merge the total biomass density with results_df
+    results_df = results_df.merge(
+        total_biomass[["Period", "Site", "Total Biomass Density"]], 
+        on=["Period", "Site"], 
+        how="left"
+    )
     return results_df
 
 

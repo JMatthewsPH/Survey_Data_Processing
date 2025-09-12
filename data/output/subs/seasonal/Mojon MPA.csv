@@ -1,4 +1,4 @@
-Period,Site,Rubble Cover,Fresh Algae Cover,Soft Coral Cover,Hard Coral Cover,Bleaching
-Winter 24/25,Mojon MPA,9.58,25.83,6.04,17.5,0.0
-Spring 2025,Mojon MPA,17.08,23.33,0.42,26.25,0.73
-Summer 2025,Mojon MPA,16.81,32.08,0.56,22.36,0.35
+Period,Site,Bleaching,Rubble Cover,Fresh Algae Cover,Soft Coral Cover,Hard Coral Cover
+Winter 24/25,Mojon MPA,0.0,9.58,25.42,6.04,17.5
+Spring 2025,Mojon MPA,1.46,17.08,20.62,0.42,26.25
+Summer 2025,Mojon MPA,0.56,16.81,28.61,0.56,22.36

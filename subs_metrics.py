@@ -97,7 +97,8 @@ def calculate_fresh_algae_cover(daily_subs_data_df, results_df, daily_dive_numbe
     ## Count number of fresh algae records
     # Define fresh algae categories - I don't expect this to change hence why I've
     # defined it in code and not as an input file
-    fresh_algae_categories = ["Algae Turf", "Algae Macro", "Algae Filamentous", "Algae Seagrass"]
+    # Note: Seagrass is excluded from fresh algae cover calculation
+    fresh_algae_categories = ["Algae Turf", "Algae Macro", "Algae Filamentous"]
     fresh_algae_cover = (
         daily_subs_data_df[daily_subs_data_df["Group"].isin(fresh_algae_categories)]
         .groupby(["Period", "Site"])["Total"]
@@ -143,7 +144,7 @@ def calculate_rubber_cover(daily_subs_data_df, results_df, daily_dive_numbers_df
 
 def calculate_bleaching(daily_subs_data_df, results_df, daily_dive_numbers_df):
     """
-    Calculate bleaching metrics - Fully Bleached counts as 1, Partially Bleached counts as 0.5.
+    Calculate bleaching metrics - All types of bleaching count as 1.0 point.
 
     Parameters:
     daily_subs_data_df (pd.DataFrame): The DataFrame containing subs data.
@@ -153,28 +154,19 @@ def calculate_bleaching(daily_subs_data_df, results_df, daily_dive_numbers_df):
     Returns:
     pd.DataFrame: Updated results DataFrame with bleaching metrics.
     """
-    # Count fully bleached records
-    fully_bleached_cover = (
-        daily_subs_data_df[daily_subs_data_df["Status"] == "Fully Bleaching"]
+    # Count all bleaching records (both fully and partially bleached count as 1.0)
+    bleaching_categories = ["Fully Bleaching", "Partially Bleaching"]
+    bleaching_cover = (
+        daily_subs_data_df[daily_subs_data_df["Status"].isin(bleaching_categories)]
         .groupby(["Period", "Site"])["Total"]
         .sum()
         .reset_index()
-        .rename(columns={"Total": "Fully Bleached"})
-    )   
-    results_df = pd.merge(results_df, fully_bleached_cover, how="left").fillna(0)
-    # Count partially bleached records and divide by 2
-    partially_bleached_cover = (
-        daily_subs_data_df[daily_subs_data_df["Status"] == "Partially Bleaching"]
-        .groupby(["Period", "Site"])["Total"]
-        .sum()
-        .reset_index()
-        .rename(columns={"Total": "Partially Bleached"})
+        .rename(columns={"Total": "Bleaching"})
     )
-    results_df = pd.merge(results_df, partially_bleached_cover, how="left").fillna(0)
 
-    results_df["Bleaching"] = results_df.apply(
-        lambda row: ((row["Fully Bleached"] + row["Partially Bleached"]/2) / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
+    # Normalise by the number of dives and convert to percentage (divide by 120 points per transect)
+    bleaching_cover["Bleaching"] = bleaching_cover.apply(
+        lambda row: (row["Bleaching"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
-    results_df.drop(["Fully Bleached", "Partially Bleached"], axis=1, inplace=True)
-    return results_df
+    return pd.merge(bleaching_cover, results_df, "right").fillna(0)
