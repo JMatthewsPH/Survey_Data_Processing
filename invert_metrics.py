@@ -1,5 +1,6 @@
 import pandas as pd
 from utils import prepare_results_df, add_periods, create_daily_df
+from utils import summarize_with_ci 
 from fish_and_inverts_shared_metrics import (
     calculate_biomass,
     calculate_total_biomass_and_density,
@@ -63,4 +64,19 @@ def calculate_inverts_metrics(
         daily_inverts_data_df, results_df, daily_dive_numbers_df, "inverts"
     )
 
-    return results_df.groupby(["Period", "Site"]).sum().reset_index()
+    #return results_df.groupby(["Period", "Site"]).sum().reset_index()
+
+    density_columns = [
+    "Corallivore Density", "Detritivore Density", "Omnivore Density",
+    "Carnivore Density", "Herbivore Density", "Total Density"
+    ]
+
+    value_cols = [c for c in density_columns if c in results_df.columns]
+
+    seasonal_summary_df = summarize_with_ci(
+        results_df,
+        group_cols=["Period", "Site"],
+        value_cols=value_cols,
+    )
+    
+    return seasonal_summary_df
