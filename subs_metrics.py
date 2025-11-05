@@ -284,7 +284,7 @@ def calculate_bleaching(daily_subs_data_df, results_df, daily_dive_numbers_df):
     )
 
     # Compute daily percentage cover (normalize by that day's dives × 120 points)
-   bleaching_daily["Bleaching"] = bleaching_daily.apply(
+    bleaching_daily["Bleaching"] = bleaching_daily.apply(
         lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
