@@ -74,7 +74,8 @@ pre_processed_subs_df = pre_process_data(all_subs_survey_data_df, group="subs")
 
 ## Calculate metrics
 # First, calculate the number of dives per day for each site
-subs_daily_dive_numbers_df = determine_number_of_dives_per_period(pre_processed_subs_df, period)
+#subs_daily_dive_numbers_df = determine_number_of_dives_per_period(pre_processed_subs_df, period)
+subs_daily_dive_numbers_df = (pre_processed_subs_df.groupby(["Date", "Site"])["Survey_ID"].nunique())
 # Calculate metrics
 subs_results_df = calculate_subs_metrics(
     pre_processed_subs_df, subs_daily_dive_numbers_df, period

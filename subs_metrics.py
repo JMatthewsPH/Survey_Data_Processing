@@ -99,7 +99,8 @@ def calculate_hard_coral_cover(daily_subs_data_df, results_df, daily_dive_number
 
     # Compute daily percentage cover (normalize by that day's dives × 120 points)
     hard_coral_daily["Hard Coral Cover"] = hard_coral_daily.apply(
-        lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
+        lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Date"], row["Site"])]) / 120 * 100,
+        #lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
 
@@ -144,7 +145,8 @@ def calculate_soft_coral_cover(daily_subs_data_df, results_df, daily_dive_number
 
     # Compute daily percentage cover (normalize by that day's dives × 120 points)
     soft_coral_daily["Soft Coral Cover"] = soft_coral_daily.apply(
-        lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
+        lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Date"], row["Site"])]) / 120 * 100,
+        #lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
 
@@ -194,7 +196,8 @@ def calculate_fresh_algae_cover(daily_subs_data_df, results_df, daily_dive_numbe
 
     # Compute daily percentage cover (normalize by that day's dives × 120 points)
     fresh_algae_daily["Fresh Algae Cover"] = fresh_algae_daily.apply(
-        lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
+        lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Date"], row["Site"])]) / 120 * 100,
+        #lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
 
@@ -238,7 +241,8 @@ def calculate_rubble_cover(daily_subs_data_df, results_df, daily_dive_numbers_df
 
     # Compute daily percentage cover (normalize by that day's dives × 120 points)
    rubble_daily["Rubble Cover"] = rubble_daily.apply(
-        lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
+        lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Date"], row["Site"])]) / 120 * 100,
+        #lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
 
@@ -285,7 +289,8 @@ def calculate_bleaching(daily_subs_data_df, results_df, daily_dive_numbers_df):
 
     # Compute daily percentage cover (normalize by that day's dives × 120 points)
     bleaching_daily["Bleaching"] = bleaching_daily.apply(
-        lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
+        lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Date"], row["Site"])]) / 120 * 100,
+        #lambda row: (row["Total"] / daily_dive_numbers_df.loc[(row["Period"], row["Site"])]) / 120 * 100,
         axis=1,
     )
 
