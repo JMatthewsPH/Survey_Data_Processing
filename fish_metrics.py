@@ -1,18 +1,15 @@
 import pandas as pd
-from utils import prepare_results_df, add_periods, create_daily_df
-from utils import summarize_with_ci 
 from fish_and_inverts_shared_metrics import (
-    calculate_total_count_and_density,
-    calculate_biomass,  
-    calculate_total_biomass_and_density,
-    calculate_herbivore_density,
+    calculate_biomass,
     calculate_carnivore_density,
-    calculate_omnivore_density,
-    calculate_detritivore_density,
     calculate_corallivore_density,
-    calculate_biomass
+    calculate_detritivore_density,
+    calculate_herbivore_density,
+    calculate_omnivore_density,
+    calculate_total_biomass_and_density,
+    calculate_total_count_and_density,
 )
-
+from utils import add_periods, create_daily_df, summarize_with_ci
 
 
 def calculate_fish_metrics(
@@ -21,56 +18,60 @@ def calculate_fish_metrics(
     period: str,
 ) -> pd.DataFrame:
     """
-    Calculate various fish metrics for each unique combination of Period and Site, or aggregated by month or season.
-
-    Parameters:
-    daily_fish_data_df (pd.DataFrame): The DataFrame containing fish data.
-    daily_dive_numbers_df (pd.DataFrame): The DataFrame containing the number of dives per day for each site.
-    period (str): The period for aggregation. Options are "daily", "monthly", or "seasonal".
-
-    Returns:
-    pd.DataFrame: A DataFrame with aggregated metrics based on the specified period.
+    Calculate fish metrics for each Date/Period/Site before summarizing by season.
     """
     daily_fish_data_df = create_daily_df(pre_processed_fish_data_df, "fish")
-    daily_fish_data_df = calculate_biomass(daily_fish_data_df, "data/constants/biomass_coeffs_fish.csv")
+    daily_fish_data_df = calculate_biomass(
+        daily_fish_data_df, "data/constants/biomass_coeffs_fish.csv"
+    )
     daily_fish_data_df = add_periods(daily_fish_data_df, period)
 
-    results_df = prepare_results_df(daily_fish_data_df)
-    results_df = calculate_total_count_and_density(
-        daily_fish_data_df, results_df, daily_dive_numbers_df
-    )
-    results_df = calculate_commercial_count_and_density(
-        daily_fish_data_df, results_df, daily_dive_numbers_df
-    )
-    results_df = calculate_total_biomass_and_density(daily_fish_data_df, results_df, daily_dive_numbers_df)
-    results_df = calculate_commercial_biomass(daily_fish_data_df, results_df, daily_dive_numbers_df)
-    results_df = calculate_herbivore_density(
-        daily_fish_data_df, results_df, daily_dive_numbers_df, "fish"
-    )
-    results_df = calculate_carnivore_density(
-        daily_fish_data_df, results_df, daily_dive_numbers_df, "fish"
-    )
-    results_df = calculate_omnivore_density(
-        daily_fish_data_df, results_df, daily_dive_numbers_df, "fish"
-    )
-    results_df = calculate_detritivore_density(
-        daily_fish_data_df, results_df, daily_dive_numbers_df, "fish"
-    )
-    results_df = calculate_corallivore_density(
-        daily_fish_data_df, results_df, daily_dive_numbers_df, "fish"
-    )
+    base_daily = daily_fish_data_df[["Date", "Period", "Site"]].drop_duplicates()
 
-    #return results_df.groupby(["Period", "Site"]).sum().reset_index()
-    density_columns = [
-    "Corallivore Density", "Detritivore Density", "Omnivore Density",
-    "Carnivore Density", "Herbivore Density", "Total Density",
-    "Commercial Density", "Total Biomass Density", "Commercial Biomass Density"
+    metric_frames = [
+        calculate_total_count_and_density(daily_fish_data_df, daily_dive_numbers_df),
+        calculate_commercial_count_and_density(
+            daily_fish_data_df, daily_dive_numbers_df
+        ),
+        calculate_total_biomass_and_density(daily_fish_data_df, daily_dive_numbers_df),
+        calculate_commercial_biomass(daily_fish_data_df, daily_dive_numbers_df),
+        calculate_herbivore_density(daily_fish_data_df, daily_dive_numbers_df, "fish"),
+        calculate_carnivore_density(daily_fish_data_df, daily_dive_numbers_df, "fish"),
+        calculate_omnivore_density(daily_fish_data_df, daily_dive_numbers_df, "fish"),
+        calculate_detritivore_density(
+            daily_fish_data_df, daily_dive_numbers_df, "fish"
+        ),
+        calculate_corallivore_density(
+            daily_fish_data_df, daily_dive_numbers_df, "fish"
+        ),
     ]
-    
-    value_cols = [c for c in density_columns if c in results_df.columns]
+
+    daily_results_df = base_daily.copy()
+    for frame in metric_frames:
+        daily_results_df = daily_results_df.merge(
+            frame, on=["Date", "Period", "Site"], how="left"
+        )
+
+    density_columns = [
+        "Corallivore Density",
+        "Detritivore Density",
+        "Omnivore Density",
+        "Carnivore Density",
+        "Herbivore Density",
+        "Total Density",
+        "Commercial Density",
+        "Total Biomass Density",
+        "Commercial Biomass Density",
+    ]
+
+    for column in density_columns:
+        if column in daily_results_df.columns:
+            daily_results_df[column] = daily_results_df[column].fillna(0)
+
+    value_cols = [c for c in density_columns if c in daily_results_df.columns]
 
     seasonal_summary_df = summarize_with_ci(
-        results_df,                      
+        daily_results_df,
         group_cols=["Period", "Site"],
         value_cols=value_cols,
     )
@@ -78,82 +79,59 @@ def calculate_fish_metrics(
     return seasonal_summary_df
 
 
-def calculate_commercial_count_and_density(daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame
+def calculate_commercial_count_and_density(
+    daily_fish_data_df: pd.DataFrame, dives_df: pd.DataFrame
 ) -> pd.DataFrame:
     """
-    Calculate the total fish count and total density for each unique combination of Period and Site.
-
-    Parameters:
-    daily_fish_data_df (pd.DataFrame): The DataFrame containing fish data.
-    results_df (pd.DataFrame): The DataFrame containing the number of dives per day for each site.
-
-    Returns:
-    pd.DataFrame: A DataFrame with Period, Site, Total Fish Count, and Total Density.
+    Calculate daily commercial fish densities before seasonal summarization.
     """
-    # Read in commercial fish names
     commercial_fish_names = (
         pd.read_csv("data/constants/commercial_fish.csv", header=None)
         .squeeze()
         .tolist()
     )
-    # Count total fish per site per day that are commercial
     commercial_count = (
         daily_fish_data_df[daily_fish_data_df["Species"].isin(commercial_fish_names)]
-        .groupby(["Period", "Site"])["Total"]
+        .groupby(["Date", "Period", "Site"])["Total"]
         .sum()
         .reset_index()
         .rename(columns={"Total": "Commercial Count"})
     )
 
-    # Calculate commercial density by dividing total fish count by the number of dives
     commercial_count["Commercial Density"] = commercial_count.apply(
-        lambda row: row["Commercial Count"] / dives_df.loc[(row["Period"], row["Site"])],
+        lambda row: row["Commercial Count"] / dives_df.loc[(row["Date"], row["Site"])],
         axis=1,
     )
-    results_df["Commercial Density"] = commercial_count["Commercial Density"]
-    return results_df
+    return commercial_count[["Date", "Period", "Site", "Commercial Density"]]
+
 
 def calculate_commercial_biomass(
-    daily_fish_data_df: pd.DataFrame, results_df: pd.DataFrame, dives_df: pd.DataFrame
+    daily_fish_data_df: pd.DataFrame, dives_df: pd.DataFrame
 ) -> pd.DataFrame:
     """
-    Calculate the total commercial biomass for each unique combination of Period and Site.
-
-    Parameters:
-    daily_fish_data_df (pd.DataFrame): The DataFrame containing fish data.
-    commercial_fish_names (list): A list of species names considered commercial.
-
-    Returns:
-    pd.DataFrame: A DataFrame with Period, Site, and the summed commercial biomass.
+    Calculate daily commercial biomass densities before seasonal summarization.
     """
     commercial_fish_names = (
         pd.read_csv("data/constants/commercial_fish.csv", header=None)
         .squeeze()
         .tolist()
     )
-    # Calculate commercial biomass per site per day
     commercial_biomass = (
         daily_fish_data_df[daily_fish_data_df["Species"].isin(commercial_fish_names)]
-        .groupby(["Period", "Site"])["Total Biomass"]
+        .groupby(["Date", "Period", "Site"])["Total Biomass"]
         .sum()
         .reset_index()
         .rename(columns={"Total Biomass": "Commercial Biomass"})
     )
 
-    commercial_biomass["Commercial Biomass"] = commercial_biomass["Commercial Biomass"] / 1000  # Convert to kg
+    commercial_biomass["Commercial Biomass"] = (
+        commercial_biomass["Commercial Biomass"] / 1000
+    )  # Convert to kg
 
-    # Calculate commercial density by dividing total fish count by the number of dives
     commercial_biomass["Commercial Biomass Density"] = commercial_biomass.apply(
-        lambda row: row["Commercial Biomass"] / dives_df.loc[(row["Period"], row["Site"])],
+        lambda row: row["Commercial Biomass"]
+        / dives_df.loc[(row["Date"], row["Site"])],
         axis=1,
     )
-    
-    # Merge the commercial biomass density with results_df
-    results_df = results_df.merge(
-        commercial_biomass[["Period", "Site", "Commercial Biomass Density"]], 
-        on=["Period", "Site"], 
-        how="left"
-    )
-    return results_df
 
-    
+    return commercial_biomass[["Date", "Period", "Site", "Commercial Biomass Density"]]
