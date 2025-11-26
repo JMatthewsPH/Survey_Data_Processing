@@ -272,6 +272,11 @@ def summarize_with_ci(df, group_cols, value_cols, confidence=0.95):
                 ci_low, ci_high = mean - margin, mean + margin
                 eb_low, eb_high = mean - se, mean + se
 
+            if not pd.isna(ci_low):
+                ci_low = max(0, ci_low)
+            if not pd.isna(eb_low):
+                eb_low = max(0, eb_low)
+
             row[col] = mean
             row[f"{col}_N"] = int(n) if n == n else np.nan
             row[f"{col}_SD"] = sd
