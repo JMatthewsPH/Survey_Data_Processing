@@ -12,7 +12,7 @@ from pre_processing import (
 )
 from subs_metrics import calculate_subs_metrics
 from utils import (
-    determine_number_of_dives_per_day,
+    determine_number_of_dives_per_survey,
     find_latest_data_files,
     save_site_dataframes,
 )
@@ -37,8 +37,8 @@ pre_processed_fish_df = pre_process_data(all_fish_survey_data_df, group="fish")
 check_all_constants_exist_for_fish(pre_processed_fish_df)
 
 ## Calculate metrics
-# First, calculate the number of dives per day for each site
-fish_daily_dive_numbers_df = determine_number_of_dives_per_day(pre_processed_fish_df)
+# First, calculate the number of dives per survey
+fish_daily_dive_numbers_df = determine_number_of_dives_per_survey(pre_processed_fish_df)
 # Calculate metrics
 fish_results_df = calculate_fish_metrics(
     pre_processed_fish_df, fish_daily_dive_numbers_df, period
@@ -60,8 +60,8 @@ check_all_constants_exist_for_inverts(
     pre_processed_inverts_df, include_biomass=False
 )  # <- CHANGE THIS TO TRUE
 ## Calculate metrics
-# First, calculate the number of dives per day for each site
-inverts_daily_dive_numbers_df = determine_number_of_dives_per_day(
+# First, calculate the number of dives per survey
+inverts_daily_dive_numbers_df = determine_number_of_dives_per_survey(
     pre_processed_inverts_df
 )
 # Calculate metrics
@@ -84,9 +84,8 @@ all_subs_survey_data_df = pd.read_csv(data_files["subs"])
 pre_processed_subs_df = pre_process_data(all_subs_survey_data_df, group="subs")
 
 ## Calculate metrics
-# First, calculate the number of dives per day for each site
-# subs_daily_dive_numbers_df = determine_number_of_dives_per_period(pre_processed_subs_df, period)
-subs_daily_dive_numbers_df = determine_number_of_dives_per_day(pre_processed_subs_df)
+# First, calculate the number of dives per survey
+subs_daily_dive_numbers_df = determine_number_of_dives_per_survey(pre_processed_subs_df)
 # Calculate metrics
 subs_results_df = calculate_subs_metrics(
     pre_processed_subs_df, subs_daily_dive_numbers_df, period

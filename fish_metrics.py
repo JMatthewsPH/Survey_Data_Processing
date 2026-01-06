@@ -18,7 +18,7 @@ def calculate_fish_metrics(
     period: str,
 ) -> pd.DataFrame:
     """
-    Calculate fish metrics for each Date/Period/Site before summarizing by season.
+    Calculate fish metrics for each Survey_ID before summarizing by season.
     """
     daily_fish_data_df = create_daily_df(pre_processed_fish_data_df, "fish")
     daily_fish_data_df = calculate_biomass(
@@ -26,7 +26,9 @@ def calculate_fish_metrics(
     )
     daily_fish_data_df = add_periods(daily_fish_data_df, period)
 
-    base_daily = daily_fish_data_df[["Date", "Period", "Site"]].drop_duplicates()
+    base_daily = daily_fish_data_df[
+        ["Survey_ID", "Date", "Period", "Site"]
+    ].drop_duplicates()
 
     metric_frames = [
         calculate_total_count_and_density(daily_fish_data_df, daily_dive_numbers_df),
@@ -49,7 +51,7 @@ def calculate_fish_metrics(
     daily_results_df = base_daily.copy()
     for frame in metric_frames:
         daily_results_df = daily_results_df.merge(
-            frame, on=["Date", "Period", "Site"], how="left"
+            frame, on=["Survey_ID", "Date", "Period", "Site"], how="left"
         )
 
     density_columns = [
@@ -80,7 +82,7 @@ def calculate_fish_metrics(
 
 
 def calculate_commercial_count_and_density(
-    daily_fish_data_df: pd.DataFrame, dives_df: pd.DataFrame
+    daily_fish_data_df: pd.DataFrame, dives_df: pd.Series
 ) -> pd.DataFrame:
     """
     Calculate daily commercial fish densities before seasonal summarization.
@@ -92,21 +94,23 @@ def calculate_commercial_count_and_density(
     )
     commercial_count = (
         daily_fish_data_df[daily_fish_data_df["Species"].isin(commercial_fish_names)]
-        .groupby(["Date", "Period", "Site"])["Total"]
+        .groupby(["Survey_ID", "Date", "Period", "Site"])["Total"]
         .sum()
         .reset_index()
         .rename(columns={"Total": "Commercial Count"})
     )
 
     commercial_count["Commercial Density"] = commercial_count.apply(
-        lambda row: row["Commercial Count"] / dives_df.loc[(row["Date"], row["Site"])],
+        lambda row: row["Commercial Count"] / dives_df.loc[row["Survey_ID"]],
         axis=1,
     )
-    return commercial_count[["Date", "Period", "Site", "Commercial Density"]]
+    return commercial_count[
+        ["Survey_ID", "Date", "Period", "Site", "Commercial Density"]
+    ]
 
 
 def calculate_commercial_biomass(
-    daily_fish_data_df: pd.DataFrame, dives_df: pd.DataFrame
+    daily_fish_data_df: pd.DataFrame, dives_df: pd.Series
 ) -> pd.DataFrame:
     """
     Calculate daily commercial biomass densities before seasonal summarization.
@@ -118,7 +122,7 @@ def calculate_commercial_biomass(
     )
     commercial_biomass = (
         daily_fish_data_df[daily_fish_data_df["Species"].isin(commercial_fish_names)]
-        .groupby(["Date", "Period", "Site"])["Total Biomass"]
+        .groupby(["Survey_ID", "Date", "Period", "Site"])["Total Biomass"]
         .sum()
         .reset_index()
         .rename(columns={"Total Biomass": "Commercial Biomass"})
@@ -129,9 +133,10 @@ def calculate_commercial_biomass(
     )  # Convert to kg
 
     commercial_biomass["Commercial Biomass Density"] = commercial_biomass.apply(
-        lambda row: row["Commercial Biomass"]
-        / dives_df.loc[(row["Date"], row["Site"])],
+        lambda row: row["Commercial Biomass"] / dives_df.loc[row["Survey_ID"]],
         axis=1,
     )
 
-    return commercial_biomass[["Date", "Period", "Site", "Commercial Biomass Density"]]
+    return commercial_biomass[
+        ["Survey_ID", "Date", "Period", "Site", "Commercial Biomass Density"]
+    ]

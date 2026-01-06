@@ -28,7 +28,9 @@ def calculate_inverts_metrics(
         )
     daily_inverts_data_df = add_periods(daily_inverts_data_df, period)
 
-    base_daily = daily_inverts_data_df[["Date", "Period", "Site"]].drop_duplicates()
+    base_daily = daily_inverts_data_df[
+        ["Survey_ID", "Date", "Period", "Site"]
+    ].drop_duplicates()
 
     metric_frames = [
         calculate_total_count_and_density(daily_inverts_data_df, daily_dive_numbers_df),
@@ -59,7 +61,7 @@ def calculate_inverts_metrics(
     daily_results_df = base_daily.copy()
     for frame in metric_frames:
         daily_results_df = daily_results_df.merge(
-            frame, on=["Date", "Period", "Site"], how="left"
+            frame, on=["Survey_ID", "Date", "Period", "Site"], how="left"
         )
 
     density_columns = [

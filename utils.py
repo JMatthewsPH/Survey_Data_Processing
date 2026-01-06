@@ -42,6 +42,22 @@ def determine_number_of_dives_per_day(
     return survey_data_by_day_df.groupby(["Date", "Site"])["Survey_ID"].nunique()
 
 
+def determine_number_of_dives_per_survey(
+    survey_data_df: pd.DataFrame,
+) -> pd.Series:
+    """
+    Determine the number of dives associated with each survey (Survey_ID).
+
+    Parameters:
+    survey_data_df (pd.DataFrame): Survey dataframe containing Survey_ID.
+
+    Returns:
+    pd.Series: Series indexed by Survey_ID with the number of dives for that survey.
+    """
+    unique_ids = survey_data_df["Survey_ID"].dropna().unique()
+    return pd.Series(1, index=unique_ids)
+
+
 def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
     """
     Determine the period for each survey based on the date.
@@ -101,18 +117,15 @@ def create_daily_df(all_survey_data_df: pd.DataFrame, group: str) -> pd.DataFram
     pd.DataFrame: A DataFrame containing the total biomass and number of fish spotted
     for each fish category of each size per day and dive site
     """
+    group_columns = ["Survey_ID", "Date", "Site"]
     if group != "subs":
-        aggregated_df = (
-            all_survey_data_df.groupby(["Date", "Site", "Species", "Size"])
-            .agg({"Total": "sum"})
-            .reset_index()
-        )
+        group_columns.extend(["Species", "Size"])
     else:
-        aggregated_df = (
-            all_survey_data_df.groupby(["Date", "Site", "Group", "Status"])
-            .agg({"Total": "sum"})
-            .reset_index()
-        )
+        group_columns.extend(["Group", "Status"])
+
+    aggregated_df = (
+        all_survey_data_df.groupby(group_columns).agg({"Total": "sum"}).reset_index()
+    )
     return aggregated_df
 
 
