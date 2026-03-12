@@ -90,3 +90,6 @@ venv.bak/
 
 # Logs
 *.log
+
+# Generated survey outputs
+#data/output/

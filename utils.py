@@ -1,8 +1,11 @@
-import pandas as pd
-import re
-import os
 import glob
+import os
+import re
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from scipy import stats
 
 
 def determine_number_of_dives_per_period(
@@ -18,15 +21,49 @@ def determine_number_of_dives_per_period(
     pd.DataFrame: The DataFrame with the number of dives per day for each site.
     """
     survey_data_by_day_df = add_periods(survey_data_by_day_df, period)
-    survey_data_by_day_df = survey_data_by_day_df.groupby(["Period", "Site"])["Survey_ID"].nunique()
+    survey_data_by_day_df = survey_data_by_day_df.groupby(["Period", "Site"])[
+        "Survey_ID"
+    ].nunique()
     return survey_data_by_day_df
+
+
+def determine_number_of_dives_per_day(
+    survey_data_by_day_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Determine the number of dives per day for each site.
+
+    Parameters:
+    survey_data_by_day_df (pd.DataFrame): Survey data aggregated at the survey level.
+
+    Returns:
+    pd.DataFrame: A Series indexed by (Date, Site) with the number of unique surveys.
+    """
+    return survey_data_by_day_df.groupby(["Date", "Site"])["Survey_ID"].nunique()
+
+
+def determine_number_of_dives_per_survey(
+    survey_data_df: pd.DataFrame,
+) -> pd.Series:
+    """
+    Determine the number of dives associated with each survey (Survey_ID).
+
+    Parameters:
+    survey_data_df (pd.DataFrame): Survey dataframe containing Survey_ID.
+
+    Returns:
+    pd.Series: Series indexed by Survey_ID with the number of dives for that survey.
+    """
+    unique_ids = survey_data_df["Survey_ID"].dropna().unique()
+    return pd.Series(1, index=unique_ids)
+
 
 def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
     """
     Determine the period for each survey based on the date.
 
     Parameters:
-    time_df (pd.DataFrame): Any dataframe containing a 'Date' column (will be used for 
+    time_df (pd.DataFrame): Any dataframe containing a 'Date' column (will be used for
     fish survey data and dive data.
 
     Returns:
@@ -49,9 +86,9 @@ def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
         if month in [12, 1, 2]:
             # Winter spans two years
             if month == 12:
-                season = f"Winter {str(year)[-2:]}/{str(year+1)[-2:]}"
+                season = f"Winter {str(year)[-2:]}/{str(year + 1)[-2:]}"
             else:
-                season = f"Winter {str(year-1)[-2:]}/{str(year)[-2:]}"
+                season = f"Winter {str(year - 1)[-2:]}/{str(year)[-2:]}"
         elif month in [3, 4, 5]:
             season = f"Spring {year}"
         elif month in [6, 7, 8]:
@@ -66,6 +103,7 @@ def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
         time_df["Period"] = time_df["Date"].map(map_date_to_season)
     return time_df
 
+
 def create_daily_df(all_survey_data_df: pd.DataFrame, group: str) -> pd.DataFrame:
     """
     Aggregate all fish survey data to create a dataframe that shows the total biomass
@@ -79,19 +117,17 @@ def create_daily_df(all_survey_data_df: pd.DataFrame, group: str) -> pd.DataFram
     pd.DataFrame: A DataFrame containing the total biomass and number of fish spotted
     for each fish category of each size per day and dive site
     """
+    group_columns = ["Survey_ID", "Date", "Site"]
     if group != "subs":
-        aggregated_df = (
-            all_survey_data_df.groupby(["Date", "Site", "Species", "Size"])
-            .agg({"Total": "sum"})
-            .reset_index()
-        )
+        group_columns.extend(["Species", "Size"])
     else:
-        aggregated_df = (
-            all_survey_data_df.groupby(["Date", "Site", "Group", "Status"])
-            .agg({"Total": "sum"})
-            .reset_index()
-        )
+        group_columns.extend(["Group", "Status"])
+
+    aggregated_df = (
+        all_survey_data_df.groupby(group_columns).agg({"Total": "sum"}).reset_index()
+    )
     return aggregated_df
+
 
 def prepare_results_df(survey_data_df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -110,7 +146,9 @@ def prepare_results_df(survey_data_df: pd.DataFrame) -> pd.DataFrame:
 
 
 # Create separate DataFrames for each site and save them as CSV files
-def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, group: str) -> None:
+def save_site_dataframes(
+    daily_fish_results_df: pd.DataFrame, period: str, group: str
+) -> None:
     """
     Create separate DataFrames for each site and save them as CSV files.
 
@@ -122,16 +160,20 @@ def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, group
     # Define sites to exclude from output
     excluded_sites = {
         "BONBONON",
-        "DAUIN POBLACION MPA", 
+        "DAUIN POBLACION MPA",
         "MASAPLOD NORTE MPA",
         "TAMBOBO MPA",
         "TURTLE HEAVEN",
         "UNITY POINT",
-        "WELLBEACH"
+        "WELLBEACH",
     }
     # Order columns by season and year
-    daily_fish_results_df["sort_key"] = daily_fish_results_df["Period"].apply(period_sort_key)
-    daily_fish_results_df = daily_fish_results_df.sort_values("sort_key").drop(columns="sort_key")
+    daily_fish_results_df["sort_key"] = daily_fish_results_df["Period"].apply(
+        period_sort_key
+    )
+    daily_fish_results_df = daily_fish_results_df.sort_values("sort_key").drop(
+        columns="sort_key"
+    )
 
     # Round all values for 2 decimal places
     daily_fish_results_df = daily_fish_results_df.round(2)
@@ -139,7 +181,7 @@ def save_site_dataframes(daily_fish_results_df: pd.DataFrame, period: str, group
     output_dir = "data/output"
     if not os.path.exists(f"{output_dir}/{group}/{period}"):
         os.makedirs(f"{output_dir}/{group}/{period}")
-    
+
     # Filter out excluded sites and save only the ones we want
     for site, site_df in daily_fish_results_df.groupby("Site"):
         if site not in excluded_sites:
@@ -174,46 +216,90 @@ def period_sort_key(period_str):
 def find_latest_data_files(input_dir: str = "data/input") -> dict:
     """
     Automatically find the latest data files in the input directory.
-    
+
     Parameters:
     input_dir (str): Path to the input directory containing data files.
-    
+
     Returns:
     dict: Dictionary with file types as keys and file paths as values.
     """
     input_path = Path(input_dir)
-    
+
     # Define file patterns for each data type
     file_patterns = {
-        'fish': ['DBMCP_Fish_*.csv', 'fish_*.csv'],
-        'inverts': ['DBMCP_Inverts_*.csv', 'inverts_*.csv'],
-        'predation': ['DBMCP_Predation_*.csv', 'predation_*.csv'],
-        'subs': ['DBMCP_Substrates_*.csv', 'subs_*.csv', 'substrates_*.csv']
+        "fish": ["DBMCP_Fish_*.csv", "fish_*.csv"],
+        "inverts": ["DBMCP_Inverts_*.csv", "inverts_*.csv"],
+        "predation": ["DBMCP_Predation_*.csv", "predation_*.csv"],
+        "subs": ["DBMCP_Substrates_*.csv", "subs_*.csv", "substrates_*.csv"],
     }
-    
+
     found_files = {}
-    
+
     for data_type, patterns in file_patterns.items():
         latest_file = None
         latest_mtime = 0
-        
+
         for pattern in patterns:
             # Search for files matching the pattern
             matching_files = list(input_path.glob(pattern))
-            
+
             for file_path in matching_files:
                 # Get file modification time
                 mtime = file_path.stat().st_mtime
-                
+
                 # Keep track of the most recent file
                 if mtime > latest_mtime:
                     latest_mtime = mtime
                     latest_file = file_path
-        
+
         if latest_file:
             found_files[data_type] = str(latest_file)
             print(f"Found {data_type} data file: {latest_file.name}")
         else:
-            print(f"Warning: No {data_type} data file found matching patterns: {patterns}")
-    
+            print(
+                f"Warning: No {data_type} data file found matching patterns: {patterns}"
+            )
+
     return found_files
+
+
+def summarize_with_ci(df, group_cols, value_cols, confidence=0.95):
+    records = []
+    grouped = df.groupby(group_cols)
+    for keys, g in grouped:
+        row = dict(zip(group_cols, keys if isinstance(keys, tuple) else (keys,)))
+        for col in value_cols:
+            data = pd.to_numeric(g[col], errors="coerce").dropna()
+            n = data.size
+            if n == 0:
+                mean = sd = se = ci_low = ci_high = eb_low = eb_high = np.nan
+            elif n == 1:
+                mean = float(data.iloc[0])
+                sd = se = ci_low = ci_high = eb_low = eb_high = np.nan
+            else:
+                mean = data.mean()
+                sd = data.std(ddof=1)
+                se = stats.sem(data, nan_policy="omit")
+                tcrit = stats.t.ppf((1 + confidence) / 2.0, df=n - 1)
+                margin = tcrit * se
+                ci_low, ci_high = mean - margin, mean + margin
+                eb_low, eb_high = mean - se, mean + se
+
+            if not pd.isna(ci_low):
+                ci_low = max(0, ci_low)
+            if not pd.isna(eb_low):
+                eb_low = max(0, eb_low)
+
+            row[col] = mean
+            row[f"{col}_N"] = int(n) if n == n else np.nan
+            row[f"{col}_SD"] = sd
+            row[f"{col}_SE"] = se
+            row[f"{col}_CI_low"] = ci_low
+            row[f"{col}_CI_high"] = ci_high
+            row[f"{col}_EB_low"] = eb_low
+            row[f"{col}_EB_high"] = eb_high
+        records.append(row)
+
+    out = pd.DataFrame.from_records(records)
+    order = list(group_cols) + [c for c in out.columns if c not in group_cols]
+    return out.loc[:, order]
