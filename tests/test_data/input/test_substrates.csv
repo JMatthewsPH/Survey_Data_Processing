@@ -1,0 +1,15 @@
+Observer_name_1,Observer_name_2,Date,Site,Zone,Depth,Water_Temp,Visibility,Current,Group,Status,Diver_1_count,Diver_2_count,Total,Survey_Status,Survey_ID
+Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Deep,28,12,1,Hard Coral Massive,Healthy,40,0,40,1,test_survey_001
+Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Deep,28,12,1,Hard Coral Foliose,Healthy,25,0,25,1,test_survey_001
+Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Deep,28,12,1,Soft Coral Gorgonian,Healthy,20,0,20,1,test_survey_001
+Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Deep,28,12,1,Algae Turf,Healthy,15,0,15,1,test_survey_001
+Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Deep,28,12,1,Substrate Rubble,Healthy,10,0,10,1,test_survey_001
+Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Deep,28,12,1,Hard Coral Massive,Fully Bleaching,10,0,10,1,test_survey_001
+Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Deep,28,12,1,Hard Coral Massive,Partially Bleaching,45,0,45,1,test_survey_002
+Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Deep,28,12,1,Soft Coral Gorgonian,Healthy,30,0,30,1,test_survey_002
+Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Deep,28,12,1,Algae Macro,Healthy,25,0,25,1,test_survey_002
+Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Deep,28,12,1,Substrate Rubble,Healthy,20,0,20,1,test_survey_002
+Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Deep,28,12,1,Hard Coral Massive,Healthy,50,0,50,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Deep,28,12,1,Soft Coral Gorgonian,Healthy,35,0,35,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Deep,28,12,1,Algae Turf,Healthy,20,0,20,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Deep,28,12,1,Substrate Rubble,Healthy,15,0,15,1,test_survey_003

@@ -8,6 +8,7 @@ from fish_and_inverts_shared_metrics import (
     calculate_omnivore_density,
     calculate_total_biomass_and_density,
     calculate_total_count_and_density,
+    validate_species_in_trophic_groups,
 )
 from utils import add_periods, create_daily_df, summarize_with_ci
 
@@ -22,11 +23,15 @@ def calculate_inverts_metrics(
     Calculate invert metrics for each Date/Period/Site before summarizing by season.
     """
     daily_inverts_data_df = create_daily_df(pre_processed_inverts_data_df, "inverts")
+    daily_inverts_data_df = add_periods(daily_inverts_data_df, period)
+
+    # Validate that all species are in at least one trophic group
+    validate_species_in_trophic_groups(daily_inverts_data_df, "inverts")
+
     if include_biomass:
         daily_inverts_data_df = calculate_biomass(
             daily_inverts_data_df, "data/constants/biomass_coeffs_inverts.csv"
         )
-    daily_inverts_data_df = add_periods(daily_inverts_data_df, period)
 
     base_daily = daily_inverts_data_df[
         ["Survey_ID", "Date", "Period", "Site"]

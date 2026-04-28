@@ -1,6 +1,51 @@
 import pandas as pd
 
 
+def validate_species_in_trophic_groups(daily_data_df: pd.DataFrame, group: str) -> None:
+    """
+    Validate that all species in the data are present in at least one trophic group CSV.
+
+    Parameters:
+    daily_data_df (pd.DataFrame): The DataFrame containing species data
+    group (str): Either 'fish' or 'inverts'
+
+    Raises:
+    ValueError: If any species are not found in any trophic group CSV
+    """
+    # Get unique species from the data
+    data_species = set(daily_data_df["Species"].unique())
+
+    # Load all trophic group CSVs
+    trophic_groups = [
+        "herbivore",
+        "carnivore",
+        "omnivore",
+        "detritivore",
+        "corallivore",
+    ]
+    all_trophic_species = set()
+
+    for trophic in trophic_groups:
+        try:
+            trophic_species = (
+                pd.read_csv(f"data/constants/{trophic}_{group}.csv", header=None)
+                .iloc[:, 0]
+                .tolist()
+            )
+            all_trophic_species.update(trophic_species)
+        except (FileNotFoundError, pd.errors.EmptyDataError):
+            # CSV doesn't exist or is empty - skip it
+            continue
+
+    # Find species not in any trophic group
+    missing_species = data_species - all_trophic_species
+
+    if missing_species:
+        raise ValueError(
+            f"The following species are not found in any trophic group CSV files: {sorted(missing_species)}"
+        )
+
+
 def calculate_biomass(
     daily_data_df: pd.DataFrame, biomass_coeffs_file_url: str
 ) -> pd.DataFrame:
