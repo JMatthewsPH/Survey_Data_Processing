@@ -11,7 +11,8 @@ from fish_and_inverts_shared_metrics import (
     calculate_total_count,
     validate_species_in_trophic_groups,
 )
-from utils import prepare_survey_df, summarize_with_ci
+from utils import prepare_survey_df
+from statistics import summarize_with_ci
 
 
 def calculate_inverts_metrics(

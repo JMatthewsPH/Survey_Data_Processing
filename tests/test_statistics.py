@@ -12,7 +12,7 @@ import scipy.stats as stats
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from utils import summarize_with_ci
+from statistics import summarize_with_ci
 
 
 @pytest.fixture
