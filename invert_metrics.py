@@ -6,11 +6,12 @@ from fish_and_inverts_shared_metrics import (
     calculate_detritivore_count,
     calculate_herbivore_count,
     calculate_omnivore_count,
+    calculate_species_richness,
     calculate_total_biomass,
     calculate_total_count,
     validate_species_in_trophic_groups,
 )
-from utils import create_survey_df, summarize_with_ci
+from utils import prepare_survey_df, summarize_with_ci
 
 
 def calculate_inverts_metrics(
@@ -21,7 +22,7 @@ def calculate_inverts_metrics(
     """
     Calculate invert metrics for each Date/Period/Site before summarizing by season.
     """
-    survey_df = create_survey_df(pre_processed_inverts_data_df, "inverts", period)
+    survey_df = prepare_survey_df(pre_processed_inverts_data_df, "inverts", period)
 
     # Validate that all species are in at least one trophic group
     validate_species_in_trophic_groups(survey_df, "inverts")
@@ -82,6 +83,16 @@ def calculate_inverts_metrics(
         survey_results_df,
         group_cols=["Period", "Site"],
         value_cols=value_cols,
+    )
+
+    # Calculate species richness
+    # NOTE: this has to be aggregated per Site over the entire Period so it can't
+    # be put through the same summarize_with_ci function as the other metrics
+    species_richness_df = calculate_species_richness(survey_df)
+
+    # Merge species richness with the summarized metrics
+    seasonal_summary_df = seasonal_summary_df.merge(
+        species_richness_df, on=["Period", "Site"], how="left"
     )
 
     return seasonal_summary_df

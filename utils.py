@@ -8,26 +8,24 @@ import pandas as pd
 from scipy import stats
 
 
-def determine_number_of_dives_per_site_for_period(
-    survey_data_df: pd.DataFrame, period: str
+def determine_number_of_surveys_per_site_for_period(
+    survey_data_df: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Determine the number of dives per site for each period.
+    Determine the number of surveys per site for each period.
 
     Parameters:
     survey_data_df (pd.DataFrame): The DataFrame containing all survey data.
 
     Returns:
-    pd.DataFrame: The DataFrame with the number of dives per site for each period.
+    pd.DataFrame: The DataFrame with the number of surveys per site for each period.
     """
-    dives_per_site_per_period_df = add_periods(survey_data_df, period)
-    dives_per_site_per_period_df = (
-        dives_per_site_per_period_df.groupby(["Period", "Site"])["Survey_ID"]
+    surveys_per_site_per_period_df = (
+        survey_data_df.groupby(["Period", "Site"])["Survey_ID"]
         .nunique()
-        .sum()
         .reset_index(name="Number of Surveys")
     )
-    return dives_per_site_per_period_df
+    return surveys_per_site_per_period_df
 
 
 def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
@@ -76,11 +74,12 @@ def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
     return time_df
 
 
-def create_survey_df(
+def prepare_survey_df(
     all_survey_data_df: pd.DataFrame, group: str, period: str
 ) -> pd.DataFrame:
     """
-    Prepares dataframe for use in metric calculation.
+    Prepares dataframe for use in metric calculation - adding and
+    removing rows.
 
     all_survey_data_df (pd.DataFrame): The DataFrame containing all data
     at individual survey level.
@@ -90,25 +89,16 @@ def create_survey_df(
     Returns:
     pd.DataFrame: A DataFrame with one row per unique survey (Survey_ID) and
     either Species and Size for fish/inverts or Group and Status for substrates,
-    displaying the aggregated totals along with a Total column. Note that this
-    doesn't reduce the number of rows in the dataframe because all_survey_data_df
-    is usually already organised like this but this is still used in case that
-    assumption changes.
+    displaying the aggregated totals along with a Total column. Keeps Depth for
+    depth-specific richness calculations.
     """
-    group_columns = ["Survey_ID", "Date", "Site"]
-    if group != "subs":
-        group_columns.extend(["Species", "Size"])
-    else:
-        group_columns.extend(["Group", "Status"])
-
-    aggregated_df = (
-        all_survey_data_df.groupby(group_columns).agg({"Total": "sum"}).reset_index()
-    )
-
     # Add period information
-    aggregated_df = add_periods(aggregated_df, period)
-
-    return aggregated_df
+    prepared_df = add_periods(all_survey_data_df, period)
+    # Remove unused columns (keeping Depth for species richness calculations)
+    prepared_df = prepared_df.drop(
+        columns=["Zone", "Water_Temp", "Visibility", "Current"]
+    )
+    return prepared_df
 
 
 def prepare_results_df(survey_data_df: pd.DataFrame) -> pd.DataFrame:

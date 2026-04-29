@@ -4,9 +4,11 @@ Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Medium,28,12,1,S
 Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Medium,28,12,1,Rabbitfish,10-20,3,0,3,1,test_survey_001
 Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Medium,28,12,1,Damselfish,0-5,20,0,20,1,test_survey_001
 Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Medium,28,12,1,Grouper,20-30,2,0,2,1,test_survey_001
-Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Medium,28,12,1,Parrotfish - Other,10-20,4,0,4,1,test_survey_002
-Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Medium,28,12,1,Surgeonfish - Other,5-10,8,0,8,1,test_survey_002
-Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Medium,28,12,1,Fusilier,10-20,15,0,15,1,test_survey_002
-Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Medium,28,12,1,Grouper,20-30,3,0,3,1,test_survey_003
-Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Medium,28,12,1,Damselfish,0-5,25,0,25,1,test_survey_003
-Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Medium,28,12,1,Parrotfish - Other,5-10,6,0,6,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Shallow,28,12,1,Parrotfish - Other,10-20,4,0,4,1,test_survey_002
+Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Shallow,28,12,1,Surgeonfish - Other,5-10,8,0,8,1,test_survey_002
+Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Shallow,28,12,1,Fusilier,10-20,15,0,15,1,test_survey_002
+Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Deep,28,12,1,Grouper,20-30,3,0,3,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Deep,28,12,1,Damselfish,0-5,25,0,25,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Deep,28,12,1,Parrotfish - Other,5-10,6,0,6,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Medium,28,12,1,Fusilier,10-20,5,0,5,1,test_survey_004
+

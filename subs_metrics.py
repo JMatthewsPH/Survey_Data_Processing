@@ -1,8 +1,8 @@
-from utils import create_survey_df, summarize_with_ci
+from utils import prepare_survey_df, summarize_with_ci
 
 
 def calculate_subs_metrics(pre_processed_subs_data_df, period):
-    survey_df = create_survey_df(pre_processed_subs_data_df, "subs", period)
+    survey_df = prepare_survey_df(pre_processed_subs_data_df, "subs", period)
 
     base_survey = survey_df[["Survey_ID", "Date", "Site", "Period"]].drop_duplicates()
 

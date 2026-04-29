@@ -5,7 +5,7 @@ Debug script to investigate commercial biomass calculation for Basak Can-Unsang 
 
 import pandas as pd
 from pre_processing import pre_process_data
-from utils import determine_number_of_dives_per_site_for_period, create_survey_df
+from utils import determine_number_of_dives_per_site_for_period, prepare_survey_df
 from fish_and_inverts_shared_metrics import calculate_biomass
 
 
@@ -26,7 +26,7 @@ def debug_basak_commercial_biomass():
 
     # Create survey dataframe with periods
     print("\n3. Creating survey dataframe with seasonal periods...")
-    survey_fish_data_df = create_survey_df(pre_processed_fish_df, "fish", "seasonal")
+    survey_fish_data_df = prepare_survey_df(pre_processed_fish_df, "fish", "seasonal")
     print(f"   Survey records: {len(survey_fish_data_df)}")
 
     # Calculate biomass
@@ -83,7 +83,7 @@ def debug_basak_commercial_biomass():
         # Calculate dive numbers
         print("\n12. Calculating dive numbers...")
         dive_numbers_df = determine_number_of_dives_per_site_for_period(
-            pre_processed_fish_df, "seasonal"
+            pre_processed_fish_df
         )
         basak_dives = dive_numbers_df[
             dive_numbers_df.index.get_level_values("Site") == "Basak Can-Unsang MPA"

@@ -19,7 +19,7 @@ from subs_metrics import (
     calculate_rubble_cover,
     calculate_bleaching,
 )
-from utils import create_survey_df
+from utils import prepare_survey_df
 
 
 class TestHardCoralCover:
@@ -27,7 +27,7 @@ class TestHardCoralCover:
 
     def test_hard_coral_cover_calculation(self, preprocessed_subs_data):
         """Test that hard coral cover is calculated correctly."""
-        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
         result_df = calculate_hard_coral_cover(survey_df)
 
@@ -49,7 +49,7 @@ class TestHardCoralCover:
 
     def test_hard_coral_identification(self, preprocessed_subs_data):
         """Test that hard coral groups are correctly identified regardless of health status."""
-        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
         # Test that hard coral groups are identified
         hard_coral_groups = survey_df[
@@ -103,7 +103,7 @@ class TestSoftCoralCover:
 
     def test_soft_coral_cover_calculation(self, preprocessed_subs_data):
         """Test that soft coral cover is calculated correctly."""
-        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
         result_df = calculate_soft_coral_cover(survey_df)
 
@@ -126,7 +126,7 @@ class TestFreshAlgaeCover:
 
     def test_fresh_algae_cover_calculation(self, preprocessed_subs_data):
         """Test that fresh algae cover is calculated correctly."""
-        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
         result_df = calculate_fresh_algae_cover(survey_df)
 
@@ -159,7 +159,7 @@ class TestRubbleCover:
 
     def test_rubble_cover_calculation(self, preprocessed_subs_data):
         """Test that rubble cover is calculated correctly."""
-        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
         result_df = calculate_rubble_cover(survey_df)
 
@@ -180,7 +180,7 @@ class TestBleaching:
 
     def test_bleaching_calculation(self, preprocessed_subs_data):
         """Test that bleaching percentage is calculated correctly."""
-        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
         result_df = calculate_bleaching(survey_df)
 
@@ -209,7 +209,7 @@ class TestBleaching:
 
     def test_no_bleaching(self, preprocessed_subs_data):
         """Test handling of surveys with no bleaching."""
-        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
         result_df = calculate_bleaching(survey_df)
 

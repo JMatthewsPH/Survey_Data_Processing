@@ -3,9 +3,11 @@ Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Shallow,29,12,1,
 Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Shallow,29,12,1,Gastropods - Cone,5-10,5,0,5,1,test_survey_001
 Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Shallow,29,12,1,Bivalves - Giant Clam,10-20,3,0,3,1,test_survey_001
 Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Shallow,29,12,1,Sea Cucumbers - Other,10-20,8,0,8,1,test_survey_001
-Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Shallow,29,12,1,Sea Urchins - Diadema,5-10,45,0,45,1,test_survey_002
-Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Shallow,29,12,1,Gastropods - Tiger Cowrie,5-10,6,0,6,1,test_survey_002
-Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Shallow,29,12,1,Sea Stars - Crown of Thorns,10-20,2,0,2,1,test_survey_002
-Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Shallow,29,12,1,Sea Urchins - Diadema,5-10,30,0,30,1,test_survey_003
-Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Shallow,29,12,1,Bivalves - Giant Clam,10-20,5,0,5,1,test_survey_003
-Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Shallow,29,12,1,Sea Cucumbers - Other,5-10,10,0,10,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Medium,29,12,1,Sea Urchins - Diadema,5-10,45,0,45,1,test_survey_002
+Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Medium,29,12,1,Gastropods - Tiger Cowrie,5-10,6,0,6,1,test_survey_002
+Test Observer,Test Observer 2,2024-03-02 00:00:00,Test Site A,1,Medium,29,12,1,Sea Stars - Crown of Thorns,10-20,2,0,2,1,test_survey_002
+Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Deep,29,12,1,Sea Urchins - Diadema,5-10,30,0,30,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Deep,29,12,1,Bivalves - Giant Clam,10-20,5,0,5,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-05 00:00:00,Test Site B,1,Deep,29,12,1,Sea Cucumbers - Other,5-10,10,0,10,1,test_survey_003
+Test Observer,Test Observer 2,2024-03-01 00:00:00,Test Site A,1,Shallow,29,12,1,Sea Urchins - Diadema,5-10,10,0,10,1,test_survey_004
+

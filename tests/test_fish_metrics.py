@@ -24,8 +24,9 @@ from fish_and_inverts_shared_metrics import (
     calculate_omnivore_count,
     calculate_detritivore_count,
     calculate_corallivore_count,
+    calculate_species_richness,
 )
-from utils import create_survey_df
+from utils import prepare_survey_df
 
 
 class TestFishBiomassCalculation:
@@ -35,7 +36,7 @@ class TestFishBiomassCalculation:
         self, preprocessed_fish_data, test_constants_dir
     ):
         """Test that biomass is calculated correctly using the formula."""
-        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
         biomass_df = calculate_biomass(
             survey_df, str(test_constants_dir / "biomass_coeffs_fish.csv")
         )
@@ -68,7 +69,7 @@ class TestFishDensityCalculation:
 
     def test_total_count_and_density(self, preprocessed_fish_data):
         """Test total count and density calculations."""
-        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
 
         result_df = calculate_total_count(survey_df)
 
@@ -110,7 +111,7 @@ class TestCommercialFishMetrics:
         self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that commercial fish density is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
         result_df = calculate_commercial_count(survey_df)
 
         # Verify structure
@@ -140,7 +141,7 @@ class TestCommercialFishMetrics:
         redirect_constants_to_test_data,
     ):
         """Test that commercial biomass is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
         survey_df = calculate_biomass(
             survey_df, str(test_constants_dir / "biomass_coeffs_fish.csv")
         )
@@ -249,7 +250,7 @@ class TestFishFoodGroups:
         self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that herbivore density is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
         result_df = calculate_herbivore_count(survey_df, "fish")
 
         # Verify structure
@@ -275,7 +276,7 @@ class TestFishFoodGroups:
         self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that carnivore density is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
         result_df = calculate_carnivore_count(survey_df, "fish")
 
         # Verify structure
@@ -301,7 +302,7 @@ class TestFishFoodGroups:
         self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that omnivore density is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
         result_df = calculate_omnivore_count(survey_df, "fish")
 
         # Verify structure
@@ -328,7 +329,7 @@ class TestFishFoodGroups:
         self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that detritivore density is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
         result_df = calculate_detritivore_count(survey_df, "fish")
 
         # Verify structure
@@ -353,7 +354,7 @@ class TestFishFoodGroups:
         self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that corallivore density is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
         result_df = calculate_corallivore_count(survey_df, "fish")
 
         # Verify structure
@@ -392,3 +393,133 @@ class TestFishFoodGroups:
         # Should raise ValueError when trying to calculate metrics with unknown species
         with pytest.raises(ValueError, match="not found in any trophic group CSV"):
             calculate_fish_metrics(modified_data, "seasonal")
+
+
+class TestSpeciesRichness:
+    """Test species richness calculations."""
+
+    def test_species_richness_run(self, preprocessed_fish_data):
+        """Test that species richness returns dataframe with correct columns and sites."""
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_species_richness(survey_df)
+
+        # Check that result is a DataFrame
+        assert isinstance(result_df, pd.DataFrame)
+
+        # Check expected columns
+        assert "Period" in result_df.columns
+        assert "Site" in result_df.columns
+        assert "Species Richness" in result_df.columns
+        assert "Average Species Richness" in result_df.columns
+        assert "Number of Surveys" in result_df.columns
+        assert "Species Richness Shallow" in result_df.columns
+        assert "Average Species Richness Shallow" in result_df.columns
+        assert "Number of Surveys Shallow" in result_df.columns
+        assert "Species Richness Medium" in result_df.columns
+        assert "Average Species Richness Medium" in result_df.columns
+        assert "Number of Surveys Medium" in result_df.columns
+        assert "Species Richness Deep" in result_df.columns
+        assert "Average Species Richness Deep" in result_df.columns
+        assert "Number of Surveys Deep" in result_df.columns
+        assert "Number of Surveys" in result_df.columns
+
+        # Check that we have results for each site (both sites are in the same period)
+        assert len(result_df) == 2
+
+        # Check that only the two expected sites are in the results
+        sites = result_df["Site"].tolist()
+        assert "Test Site A" in sites
+        assert "Test Site B" in sites
+
+    def test_species_richness_overall_calculation(self, preprocessed_fish_data):
+        """Test that species richness values are correct."""
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_species_richness(survey_df)
+
+        # For Test Site A:
+        # Survey 1 (Medium): Parrotfish - Other, Surgeonfish - Other, Rabbitfish, Damselfish, Grouper (5 species)
+        # Survey 2 (Shallow): Parrotfish - Other, Surgeonfish - Other, Fusilier (3 species)
+        # Survey 4 (Medium): Fusilier (1 species)
+        # Unique species total: 6 (Parrotfish, Surgeonfish, Rabbitfish, Damselfish, Grouper, Fusilier)
+        # Number of surveys: 3
+        # Average: 6/3 = 2.0
+        site_a_result = result_df[result_df["Site"] == "Test Site A"]
+        assert len(site_a_result) == 1
+        assert site_a_result.iloc[0]["Species Richness"] == 6
+        assert site_a_result.iloc[0]["Number of Surveys"] == 3
+        assert site_a_result.iloc[0]["Average Species Richness"] == 2.0
+
+        # For Test Site B:
+        # Survey 3 (Deep): Grouper, Damselfish, Parrotfish - Other
+        # Unique species total: 3
+        # Number of surveys: 1
+        # Average: 3/1 = 3.0
+        site_b_result = result_df[result_df["Site"] == "Test Site B"]
+        assert len(site_b_result) == 1
+        assert site_b_result.iloc[0]["Species Richness"] == 3
+        assert site_b_result.iloc[0]["Number of Surveys"] == 1
+        assert site_b_result.iloc[0]["Average Species Richness"] == 3.0
+
+    def test_species_richness_shallow_depth(self, preprocessed_fish_data):
+        """Test that Shallow depth species richness values are correct."""
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_species_richness(survey_df)
+
+        # Test Site A: test_survey_002 is at Shallow depth with 3 species
+        # Species: Parrotfish - Other, Surgeonfish - Other, Fusilier
+        site_a_result = result_df[result_df["Site"] == "Test Site A"]
+        assert len(site_a_result) == 1
+        assert site_a_result.iloc[0]["Species Richness Shallow"] == 3
+        assert site_a_result.iloc[0]["Number of Surveys Shallow"] == 1
+        assert site_a_result.iloc[0]["Average Species Richness Shallow"] == 3.0
+
+        # Test Site B: no Shallow surveys
+        site_b_result = result_df[result_df["Site"] == "Test Site B"]
+        assert len(site_b_result) == 1
+        assert pd.isna(site_b_result.iloc[0]["Species Richness Shallow"])
+        assert pd.isna(site_b_result.iloc[0]["Number of Surveys Shallow"])
+        assert pd.isna(site_b_result.iloc[0]["Average Species Richness Shallow"])
+
+    def test_species_richness_medium_depth(self, preprocessed_fish_data):
+        """Test that Medium depth species richness values are correct."""
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_species_richness(survey_df)
+
+        # Test Site A: test_survey_001 and test_survey_004 are at Medium depth
+        # test_survey_001 species: 5 species (Parrotfish, Surgeonfish, Rabbitfish, Damselfish, Grouper)
+        # test_survey_004 species: 1 species (Fusilier)
+        # Unique species across both Medium surveys: 6
+        # Number of surveys: 2
+        # Average: 6/2 = 3.0
+        site_a_result = result_df[result_df["Site"] == "Test Site A"]
+        assert len(site_a_result) == 1
+        assert site_a_result.iloc[0]["Species Richness Medium"] == 6
+        assert site_a_result.iloc[0]["Number of Surveys Medium"] == 2
+        assert site_a_result.iloc[0]["Average Species Richness Medium"] == 3.0
+
+        # Test Site B: no Medium surveys
+        site_b_result = result_df[result_df["Site"] == "Test Site B"]
+        assert len(site_b_result) == 1
+        assert pd.isna(site_b_result.iloc[0]["Species Richness Medium"])
+        assert pd.isna(site_b_result.iloc[0]["Number of Surveys Medium"])
+        assert pd.isna(site_b_result.iloc[0]["Average Species Richness Medium"])
+
+    def test_species_richness_deep_depth(self, preprocessed_fish_data):
+        """Test that Deep depth species richness values are correct."""
+        survey_df = prepare_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_species_richness(survey_df)
+
+        # Test Site A: no Deep surveys
+        site_a_result = result_df[result_df["Site"] == "Test Site A"]
+        assert len(site_a_result) == 1
+        assert pd.isna(site_a_result.iloc[0]["Species Richness Deep"])
+        assert pd.isna(site_a_result.iloc[0]["Number of Surveys Deep"])
+        assert pd.isna(site_a_result.iloc[0]["Average Species Richness Deep"])
+
+        # Test Site B: test_survey_003 is at Deep depth with 3 species
+        # Species: Grouper, Damselfish, Parrotfish - Other
+        site_b_result = result_df[result_df["Site"] == "Test Site B"]
+        assert len(site_b_result) == 1
+        assert site_b_result.iloc[0]["Species Richness Deep"] == 3
+        assert site_b_result.iloc[0]["Number of Surveys Deep"] == 1
+        assert site_b_result.iloc[0]["Average Species Richness Deep"] == 3.0

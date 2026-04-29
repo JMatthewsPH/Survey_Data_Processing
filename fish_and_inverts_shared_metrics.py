@@ -1,4 +1,5 @@
 import pandas as pd
+from utils import determine_number_of_surveys_per_site_for_period
 
 
 def validate_species_in_trophic_groups(daily_data_df: pd.DataFrame, group: str) -> None:
@@ -226,18 +227,79 @@ def calculate_corallivore_count(
 
 def calculate_species_richness(daily_survey_data_df: pd.DataFrame):
     """
-    Calculate species richness (number of unique species observed per survey)
+    Calculate species richness (number of unique species observed per period).
+    Calculates both overall richness and depth-specific richness (Shallow, Medium, Deep).
+    NOTE: this is not calculated the same way as the other metrics - it is just
+    one number calculated for the entire period rather than a value calculated
+    per survey with statistics calculated on it at the end.
 
     Parameters:
-    daily_survey_data_df (pd.DataFrame): DataFrame containing daily survey data.
+    daily_survey_data_df (pd.DataFrame): DataFrame containing survey data with Depth column.
 
     Returns:
-    pd.DataFrame: DataFrame with species richness calculated for each survey.
+    pd.DataFrame: DataFrame with overall and depth-specific species richness and
+    average species richness (normalised by number of surveys) calculated per period per site.
     """
+    # Calculate overall species richness (all depths combined)
     species_richness = (
-        daily_survey_data_df.groupby(["Survey_ID", "Date", "Period", "Site"])["Total"]
+        daily_survey_data_df.groupby(["Period", "Site"])["Species"]
         .nunique()
         .reset_index()
-        .rename(columns={"Total": "Species Richness"})
+        .rename(columns={"Species": "Species Richness"})
     )
+
+    number_of_surveys_df = determine_number_of_surveys_per_site_for_period(
+        daily_survey_data_df
+    )
+
+    # Merge the number of surveys into the species richness dataframe
+    species_richness = species_richness.merge(
+        number_of_surveys_df, on=["Period", "Site"], how="left"
+    )
+
+    species_richness["Average Species Richness"] = (
+        species_richness["Species Richness"] / species_richness["Number of Surveys"]
+    )
+
+    # Calculate depth-specific species richness
+    for depth in ["Shallow", "Medium", "Deep"]:
+        depth_data = daily_survey_data_df[daily_survey_data_df["Depth"] == depth]
+
+        if len(depth_data) > 0:
+            depth_richness = (
+                depth_data.groupby(["Period", "Site"])["Species"]
+                .nunique()
+                .reset_index()
+                .rename(columns={"Species": f"Species Richness {depth}"})
+            )
+
+            # Count surveys for this depth
+            depth_surveys = (
+                depth_data.groupby(["Period", "Site"])["Survey_ID"]
+                .nunique()
+                .reset_index()
+                .rename(columns={"Survey_ID": f"Number of Surveys {depth}"})
+            )
+
+            # Merge depth richness
+            species_richness = species_richness.merge(
+                depth_richness, on=["Period", "Site"], how="left"
+            )
+
+            # Merge depth survey counts
+            species_richness = species_richness.merge(
+                depth_surveys, on=["Period", "Site"], how="left"
+            )
+
+            # Calculate average for this depth
+            species_richness[f"Average Species Richness {depth}"] = (
+                species_richness[f"Species Richness {depth}"]
+                / species_richness[f"Number of Surveys {depth}"]
+            )
+        else:
+            # If no data for this depth, add columns with NaN
+            species_richness[f"Species Richness {depth}"] = pd.NA
+            species_richness[f"Number of Surveys {depth}"] = pd.NA
+            species_richness[f"Average Species Richness {depth}"] = pd.NA
+
     return species_richness

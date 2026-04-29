@@ -22,7 +22,7 @@ from fish_and_inverts_shared_metrics import (
     calculate_corallivore_count,
     calculate_species_richness,
 )
-from utils import create_survey_df
+from utils import prepare_survey_df
 
 
 class TestInvertBiomassCalculation:
@@ -32,7 +32,7 @@ class TestInvertBiomassCalculation:
         self, preprocessed_invert_data, test_constants_dir
     ):
         """Test that biomass is calculated correctly for invertebrates."""
-        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
         biomass_df = calculate_biomass(
             survey_df, str(test_constants_dir / "biomass_coeffs_inverts.csv")
         )
@@ -65,7 +65,7 @@ class TestInvertDensityCalculation:
 
     def test_total_count_and_density(self, preprocessed_invert_data):
         """Test total count and density calculations."""
-        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
 
         result_df = calculate_total_count(survey_df)
 
@@ -140,7 +140,7 @@ class TestInvertFoodGroups:
         redirect_constants_to_test_data,
     ):
         """Test that herbivore count is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
         result_df = calculate_herbivore_count(survey_df, "inverts")
 
         # Verify structure
@@ -163,13 +163,18 @@ class TestInvertFoodGroups:
         assert len(survey_003) == 1
         assert abs(survey_003.iloc[0]["Herbivore Count"] - 30.0) < 0.01
 
+        # test_survey_004: Sea Urchins - Diadema (10)
+        survey_004 = result_df[result_df["Survey_ID"] == "test_survey_004"]
+        assert len(survey_004) == 1
+        assert abs(survey_004.iloc[0]["Herbivore Count"] - 10.0) < 0.01
+
     def test_inverts_carnivore_count_calculation(
         self,
         preprocessed_invert_data,
         redirect_constants_to_test_data,
     ):
         """Test that carnivore count is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
         result_df = calculate_carnivore_count(survey_df, "inverts")
 
         # Verify structure
@@ -191,13 +196,17 @@ class TestInvertFoodGroups:
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
         assert len(survey_003) == 0  # No row when count is 0
 
+        # test_survey_004: No carnivores -> not in results (treated as 0)
+        survey_004 = result_df[result_df["Survey_ID"] == "test_survey_004"]
+        assert len(survey_004) == 0  # No row when count is 0
+
     def test_inverts_omnivore_count_calculation(
         self,
         preprocessed_invert_data,
         redirect_constants_to_test_data,
     ):
         """Test that omnivore count is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
         result_df = calculate_omnivore_count(survey_df, "inverts")
 
         # Verify structure
@@ -219,13 +228,17 @@ class TestInvertFoodGroups:
         assert len(survey_003) == 1
         assert abs(survey_003.iloc[0]["Omnivore Count"] - 10.0) < 0.01
 
+        # test_survey_004: No omnivores -> not in results (treated as 0)
+        survey_004 = result_df[result_df["Survey_ID"] == "test_survey_004"]
+        assert len(survey_004) == 0  # No row when count is 0
+
     def test_inverts_detritivore_count_calculation(
         self,
         preprocessed_invert_data,
         redirect_constants_to_test_data,
     ):
         """Test that detritivore count is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
         result_df = calculate_detritivore_count(survey_df, "inverts")
 
         # Verify structure
@@ -247,13 +260,17 @@ class TestInvertFoodGroups:
         assert len(survey_003) == 1
         assert abs(survey_003.iloc[0]["Detritivore Count"] - 5.0) < 0.01
 
+        # test_survey_004: No detritivores -> not in results (treated as 0)
+        survey_004 = result_df[result_df["Survey_ID"] == "test_survey_004"]
+        assert len(survey_004) == 0  # No row when count is 0
+
     def test_inverts_corallivore_count_calculation(
         self,
         preprocessed_invert_data,
         redirect_constants_to_test_data,
     ):
         """Test that corallivore count is calculated correctly per survey."""
-        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
         result_df = calculate_corallivore_count(survey_df, "inverts")
 
         # Verify structure
@@ -272,7 +289,11 @@ class TestInvertFoodGroups:
 
         # test_survey_003: No corallivores -> not in results (treated as 0)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
-        assert len(survey_003) == 0  # No row when density is 0
+        assert len(survey_003) == 0  # No row when count is 0
+
+        # test_survey_004: No corallivores -> not in results (treated as 0)
+        survey_004 = result_df[result_df["Survey_ID"] == "test_survey_004"]
+        assert len(survey_004) == 0  # No row when count is 0
 
     def test_species_not_in_any_trophic_group(
         self,
@@ -298,50 +319,124 @@ class TestInvertFoodGroups:
 class TestSpeciesRichness:
     """Test species richness calculations."""
 
-    def test_species_richness_result(self, preprocessed_invert_data):
+    def test_species_richness_run(self, preprocessed_invert_data):
         """Test that species richness returns dataframe with correct columns and sites."""
-        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
         result_df = calculate_species_richness(survey_df)
 
         # Check that result is a DataFrame
         assert isinstance(result_df, pd.DataFrame)
 
         # Check expected columns
+        assert "Period" in result_df.columns
         assert "Site" in result_df.columns
         assert "Species Richness" in result_df.columns
-        assert "Survey_ID" in result_df.columns
+        assert "Average Species Richness" in result_df.columns
+        assert "Number of Surveys" in result_df.columns
+        assert "Species Richness Shallow" in result_df.columns
+        assert "Average Species Richness Shallow" in result_df.columns
+        assert "Number of Surveys Shallow" in result_df.columns
+        assert "Species Richness Medium" in result_df.columns
+        assert "Average Species Richness Medium" in result_df.columns
+        assert "Number of Surveys Medium" in result_df.columns
+        assert "Species Richness Deep" in result_df.columns
+        assert "Average Species Richness Deep" in result_df.columns
+        assert "Number of Surveys Deep" in result_df.columns
+        assert "Number of Surveys" in result_df.columns
 
-        # Check that we have results for each survey
-        assert len(result_df) == 3
+        # Check that we have results for each site (both sites are in the same period)
+        assert len(result_df) == 2
 
         # Check that only the two expected sites are in the results
         sites = result_df["Site"].tolist()
         assert "Test Site A" in sites
         assert "Test Site B" in sites
 
-    def test_species_richness_calculation(self, preprocessed_invert_data):
+    def test_species_richness_overall_calculation(self, preprocessed_invert_data):
         """Test that species richness values are correct."""
-        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
         result_df = calculate_species_richness(survey_df)
 
-        # For test_survey_001:
-        # Survey 1: Sea Urchins - Diadema, Gastropods - Cone, Bivalves - Giant Clam, Sea Cucumbers - Other (4 species)
-        # Unique species total: 3
+        # For Test Site A:
+        # Survey 1 (Shallow): Sea Urchins - Diadema, Gastropods - Cone, Bivalves - Giant Clam, Sea Cucumbers - Other
+        # Survey 2 (Medium): Sea Urchins - Diadema, Gastropods - Tiger Cowrie, Sea Stars - Crown of Thorns
+        # Survey 4 (Shallow): Sea Urchins - Diadema
+        # Unique species total: 6
+        # Number of surveys: 3
         site_a_result = result_df[result_df["Site"] == "Test Site A"]
         assert len(site_a_result) == 1
-        assert site_a_result.iloc[0]["Species Richness"] == 5
-
-        # For test_survey_002 : Sea Urchins - Diadema, Gastropods - Cone, Sea Stars - Crown of Thorns (3 species)
-        # Unique species total: 5
-        site_a_result = result_df[result_df["Site"] == "Test Site A"]
-        assert len(site_a_result) == 1
-        assert site_a_result.iloc[0]["Species Richness"] == 5
+        assert site_a_result.iloc[0]["Species Richness"] == 6
+        assert site_a_result.iloc[0]["Number of Surveys"] == 3
+        assert site_a_result.iloc[0]["Average Species Richness"] == 2.0
 
         # For Test Site B:
-        # Survey 3: Sea Urchins - Diadema, Bivalves - Giant Clam, Sea Cucumbers - Other (3 species)
+        # Survey 3: Sea Urchins - Diadema, Bivalves - Giant Clam, Sea Cucumbers - Other
+        # Unique species total: 3
         # Number of surveys: 1
         site_b_result = result_df[result_df["Site"] == "Test Site B"]
         assert len(site_b_result) == 1
         assert site_b_result.iloc[0]["Species Richness"] == 3
         assert site_b_result.iloc[0]["Number of Surveys"] == 1
-        assert abs(site_b_result.iloc[0]["Average Species Richness"] - 3.0) < 0.01
+
+    def test_species_richness_shallow_depth(self, preprocessed_invert_data):
+        """Test that Shallow depth species richness values are correct."""
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        result_df = calculate_species_richness(survey_df)
+
+        # Test Site A: test_survey_001 and test_survey_004 are at Shallow depth
+        # test_survey_001 species: Sea Urchins - Diadema, Gastropods - Cone, Bivalves - Giant Clam, Sea Cucumbers - Other
+        # test_survey_004 species: Sea Urchins - Diadema
+        # Unique species across both Shallow surveys: 4
+        # Number of surveys: 2
+        site_a_result = result_df[result_df["Site"] == "Test Site A"]
+        assert len(site_a_result) == 1
+        assert site_a_result.iloc[0]["Species Richness Shallow"] == 4
+        assert site_a_result.iloc[0]["Number of Surveys Shallow"] == 2
+        assert site_a_result.iloc[0]["Average Species Richness Shallow"] == 2.0
+
+        # Test Site B: no Shallow surveys
+        site_b_result = result_df[result_df["Site"] == "Test Site B"]
+        assert len(site_b_result) == 1
+        assert pd.isna(site_b_result.iloc[0]["Species Richness Shallow"])
+        assert pd.isna(site_b_result.iloc[0]["Number of Surveys Shallow"])
+        assert pd.isna(site_b_result.iloc[0]["Average Species Richness Shallow"])
+
+    def test_species_richness_medium_depth(self, preprocessed_invert_data):
+        """Test that Medium depth species richness values are correct."""
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        result_df = calculate_species_richness(survey_df)
+
+        # Test Site A: test_survey_002 is at Medium depth with 3 species
+        # Species: Sea Urchins - Diadema, Gastropods - Tiger Cowrie, Sea Stars - Crown of Thorns
+        site_a_result = result_df[result_df["Site"] == "Test Site A"]
+        assert len(site_a_result) == 1
+        assert site_a_result.iloc[0]["Species Richness Medium"] == 3
+        assert site_a_result.iloc[0]["Number of Surveys Medium"] == 1
+        assert site_a_result.iloc[0]["Average Species Richness Medium"] == 3.0
+
+        # Test Site B: no Medium surveys
+        site_b_result = result_df[result_df["Site"] == "Test Site B"]
+        assert len(site_b_result) == 1
+        assert pd.isna(site_b_result.iloc[0]["Species Richness Medium"])
+        assert pd.isna(site_b_result.iloc[0]["Number of Surveys Medium"])
+        assert pd.isna(site_b_result.iloc[0]["Average Species Richness Medium"])
+
+    def test_species_richness_deep_depth(self, preprocessed_invert_data):
+        """Test that Deep depth species richness values are correct."""
+        survey_df = prepare_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        result_df = calculate_species_richness(survey_df)
+
+        # Test Site A: no Deep surveys
+        site_a_result = result_df[result_df["Site"] == "Test Site A"]
+        assert len(site_a_result) == 1
+        assert pd.isna(site_a_result.iloc[0]["Species Richness Deep"])
+        assert pd.isna(site_a_result.iloc[0]["Number of Surveys Deep"])
+        assert pd.isna(site_a_result.iloc[0]["Average Species Richness Deep"])
+
+        # Test Site B: test_survey_003 is at Deep depth with 3 species
+        # Species: Sea Urchins - Diadema, Bivalves - Giant Clam, Sea Cucumbers - Other
+        site_b_result = result_df[result_df["Site"] == "Test Site B"]
+        assert len(site_b_result) == 1
+        assert site_b_result.iloc[0]["Species Richness Deep"] == 3
+        assert site_b_result.iloc[0]["Number of Surveys Deep"] == 1
+        assert site_b_result.iloc[0]["Average Species Richness Deep"] == 3.0
