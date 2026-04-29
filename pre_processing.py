@@ -33,7 +33,7 @@ def pre_process_data(survey_data_df: pd.DataFrame, group: str) -> pd.DataFrame:
     # Remove invalid surveys then drop column as it's no longer needed
     if "Survey_Status" in survey_data_df.columns:
         survey_data_df = survey_data_df[survey_data_df["Survey_Status"] == 1]
-        survey_data_df.drop(["Survey_Status"], axis=1, inplace=True)
+        survey_data_df = survey_data_df.drop(["Survey_Status"], axis=1)
 
     if group != "subs":
         # Remove surveys of fish size >120
