@@ -17,11 +17,27 @@ from utils import (
     save_individual_site_dataframes,
 )
 
+# ============================================================================
+# CONFIGURATION: Toggle between development and production mode
+# ============================================================================
+DEV_MODE = True  # Set to True for development, False for production
+
 period = "seasonal"  # seasonal or monthly
 
-# Automatically find the latest data files
-print("=== AUTOMATICALLY DETECTING LATEST DATA FILES ===")
-data_files = find_latest_data_files()
+# Load data files based on mode
+if DEV_MODE:
+    print("=== DEVELOPMENT MODE: Using specified data files ===")
+    data_files = {
+        "fish": "data/input/Underconstruction Benthic DECFEB.csv",  # Update as needed
+        "inverts": "data/input/Underconstruction Benthic DECFEB.csv",  # Update as needed
+        "subs": "data/input/Underconstruction Benthic DECFEB.csv",  # Update as needed
+    }
+    print(f"Fish: {data_files['fish']}")
+    print(f"Inverts: {data_files['inverts']}")
+    print(f"Subs: {data_files['subs']}")
+else:
+    print("=== PRODUCTION MODE: Automatically detecting latest data files ===")
+    data_files = find_latest_data_files()
 print("=" * 50)
 
 ### FISH

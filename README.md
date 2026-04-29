@@ -68,8 +68,17 @@ conda activate ./env
 Edit `main.py` to configure:
 
 - Period: `seasonal` or `monthly`
-- Data files to process (fish, inverts, substrates)
+- To run in development or production mode (see below)
 - Include/exclude biomass calculations
+
+**Development vs Production Mode:**
+
+The pipeline supports two modes via the `DEV_MODE` flag in `main.py`:
+
+- **Production Mode** (`DEV_MODE = False`): Automatically finds the latest data files in `data/input/` using timestamp-based detection
+- **Development Mode** (`DEV_MODE = True`): Uses specific file paths defined in the `data_files` dictionary
+
+To switch modes, simply change the `DEV_MODE` variable at the top of `main.py`. MAKE SURE TO CHANGE THIS BACK BEFORE YOU SUBMIT A PULL REQUEST.
 
 Then run:
 
