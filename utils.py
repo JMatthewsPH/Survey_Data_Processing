@@ -117,15 +117,55 @@ def prepare_results_df(survey_data_df: pd.DataFrame) -> pd.DataFrame:
     return unique_combinations
 
 
+def save_all_sites_dataframes(
+    results_df: pd.DataFrame, period: str, group: str
+) -> None:
+    """
+    Prepare resutls dataframe and save to CSV
+
+    Parameters:
+    results_df (pd.DataFrame): The DataFrame containing daily fish results.
+    period (str): The period for aggregation (e.g., "seasonal", "monthly").
+    group (str): The data group (e.g., "fish", "inverts", "subs").
+    """
+    # Define sites to exclude from output
+    excluded_sites = {
+        "BONBONON",
+        "DAUIN POBLACION MPA",
+        "MASAPLOD NORTE MPA",
+        "TAMBOBO MPA",
+        "TURTLE HEAVEN",
+        "UNITY POINT",
+        "WELLBEACH",
+    }
+    # Drop rows with site in excluded_sites
+    results_df = results_df[~results_df["Site"].isin(excluded_sites)]
+    # Order columns by season and year
+    results_df["sort_key"] = results_df["Period"].apply(period_sort_key)
+    results_df = results_df.sort_values("sort_key").drop(columns="sort_key")
+
+    # Round all values for 2 decimal places
+    results_df = results_df.round(2)
+
+    output_dir = "data/output"
+    if not os.path.exists(f"{output_dir}/{group}/{period}"):
+        os.makedirs(f"{output_dir}/{group}/{period}")
+
+    # Filter out excluded sites and save only the ones we want
+    filename = f"{output_dir}/{group}/{period}/All Sites.csv"
+    results_df.to_csv(filename, index=False)
+    print(f"Saved {filename}")
+
+
 # Create separate DataFrames for each site and save them as CSV files
-def save_site_dataframes(
-    daily_fish_results_df: pd.DataFrame, period: str, group: str
+def save_individual_site_dataframes(
+    results_df: pd.DataFrame, period: str, group: str
 ) -> None:
     """
     Create separate DataFrames for each site and save them as CSV files.
 
     Parameters:
-    daily_fish_results_df (pd.DataFrame): The DataFrame containing daily fish results.
+    results_df (pd.DataFrame): The DataFrame containing daily fish results.
     period (str): The period for aggregation (e.g., "seasonal", "monthly").
     group (str): The data group (e.g., "fish", "inverts", "subs").
     """
@@ -140,22 +180,18 @@ def save_site_dataframes(
         "WELLBEACH",
     }
     # Order columns by season and year
-    daily_fish_results_df["sort_key"] = daily_fish_results_df["Period"].apply(
-        period_sort_key
-    )
-    daily_fish_results_df = daily_fish_results_df.sort_values("sort_key").drop(
-        columns="sort_key"
-    )
+    results_df["sort_key"] = results_df["Period"].apply(period_sort_key)
+    results_df = results_df.sort_values("sort_key").drop(columns="sort_key")
 
     # Round all values for 2 decimal places
-    daily_fish_results_df = daily_fish_results_df.round(2)
+    results_df = results_df.round(2)
 
     output_dir = "data/output"
     if not os.path.exists(f"{output_dir}/{group}/{period}"):
         os.makedirs(f"{output_dir}/{group}/{period}")
 
     # Filter out excluded sites and save only the ones we want
-    for site, site_df in daily_fish_results_df.groupby("Site"):
+    for site, site_df in results_df.groupby("Site"):
         if site not in excluded_sites:
             site_filename = f"{output_dir}/{group}/{period}/{site}.csv"
             site_df.to_csv(site_filename, index=False)
