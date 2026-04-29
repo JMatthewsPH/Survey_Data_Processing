@@ -13,7 +13,6 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from pre_processing import pre_process_data
-from utils import determine_number_of_dives_per_survey
 
 
 @pytest.fixture
@@ -62,24 +61,6 @@ def preprocessed_invert_data(raw_invert_data):
 def preprocessed_subs_data(raw_subs_data):
     """Load and preprocess substrate data."""
     return pre_process_data(raw_subs_data, group="subs")
-
-
-@pytest.fixture
-def fish_dive_numbers(preprocessed_fish_data):
-    """Calculate dive numbers for fish surveys."""
-    return determine_number_of_dives_per_survey(preprocessed_fish_data)
-
-
-@pytest.fixture
-def invert_dive_numbers(preprocessed_invert_data):
-    """Calculate dive numbers for invertebrate surveys."""
-    return determine_number_of_dives_per_survey(preprocessed_invert_data)
-
-
-@pytest.fixture
-def subs_dive_numbers(preprocessed_subs_data):
-    """Calculate dive numbers for substrate surveys."""
-    return determine_number_of_dives_per_survey(preprocessed_subs_data)
 
 
 @pytest.fixture(autouse=True)

@@ -8,54 +8,26 @@ import pandas as pd
 from scipy import stats
 
 
-def determine_number_of_dives_per_period(
-    survey_data_by_day_df: pd.DataFrame, period: str
+def determine_number_of_dives_per_site_for_period(
+    survey_data_df: pd.DataFrame, period: str
 ) -> pd.DataFrame:
     """
-    Determine the number of dives per day for each site.
+    Determine the number of dives per site for each period.
 
     Parameters:
-    survey_data_df (pd.DataFrame): The DataFrame containing all fish data.
+    survey_data_df (pd.DataFrame): The DataFrame containing all survey data.
 
     Returns:
-    pd.DataFrame: The DataFrame with the number of dives per day for each site.
+    pd.DataFrame: The DataFrame with the number of dives per site for each period.
     """
-    survey_data_by_day_df = add_periods(survey_data_by_day_df, period)
-    survey_data_by_day_df = survey_data_by_day_df.groupby(["Period", "Site"])[
-        "Survey_ID"
-    ].nunique()
-    return survey_data_by_day_df
-
-
-def determine_number_of_dives_per_day(
-    survey_data_by_day_df: pd.DataFrame,
-) -> pd.DataFrame:
-    """
-    Determine the number of dives per day for each site.
-
-    Parameters:
-    survey_data_by_day_df (pd.DataFrame): Survey data aggregated at the survey level.
-
-    Returns:
-    pd.DataFrame: A Series indexed by (Date, Site) with the number of unique surveys.
-    """
-    return survey_data_by_day_df.groupby(["Date", "Site"])["Survey_ID"].nunique()
-
-
-def determine_number_of_dives_per_survey(
-    survey_data_df: pd.DataFrame,
-) -> pd.Series:
-    """
-    Determine the number of dives associated with each survey (Survey_ID).
-
-    Parameters:
-    survey_data_df (pd.DataFrame): Survey dataframe containing Survey_ID.
-
-    Returns:
-    pd.Series: Series indexed by Survey_ID with the number of dives for that survey.
-    """
-    unique_ids = survey_data_df["Survey_ID"].dropna().unique()
-    return pd.Series(1, index=unique_ids)
+    dives_per_site_per_period_df = add_periods(survey_data_df, period)
+    dives_per_site_per_period_df = (
+        dives_per_site_per_period_df.groupby(["Period", "Site"])["Survey_ID"]
+        .nunique()
+        .sum()
+        .reset_index(name="Number of Surveys")
+    )
+    return dives_per_site_per_period_df
 
 
 def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
@@ -104,18 +76,24 @@ def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
     return time_df
 
 
-def create_daily_df(all_survey_data_df: pd.DataFrame, group: str) -> pd.DataFrame:
+def create_survey_df(
+    all_survey_data_df: pd.DataFrame, group: str, period: str
+) -> pd.DataFrame:
     """
-    Aggregate all fish survey data to create a dataframe that shows the total biomass
-    and number of fish spotted for each fish category of each size seen on each day at
-    each dive site. This is used to calculate the fish metrics for any period.
+    Prepares dataframe for use in metric calculation.
 
-    all_fish_survey_data_df (pd.DataFrame): The DataFrame containing all fish data
-    at indivudual survey level.
+    all_survey_data_df (pd.DataFrame): The DataFrame containing all data
+    at individual survey level.
+    group (str): The data group (e.g., "fish", "inverts", "subs").
+    period (str): The period for aggregation (e.g., "seasonal", "monthly").
 
     Returns:
-    pd.DataFrame: A DataFrame containing the total biomass and number of fish spotted
-    for each fish category of each size per day and dive site
+    pd.DataFrame: A DataFrame with one row per unique survey (Survey_ID) and
+    either Species and Size for fish/inverts or Group and Status for substrates,
+    displaying the aggregated totals along with a Total column. Note that this
+    doesn't reduce the number of rows in the dataframe because all_survey_data_df
+    is usually already organised like this but this is still used in case that
+    assumption changes.
     """
     group_columns = ["Survey_ID", "Date", "Site"]
     if group != "subs":
@@ -126,6 +104,10 @@ def create_daily_df(all_survey_data_df: pd.DataFrame, group: str) -> pd.DataFram
     aggregated_df = (
         all_survey_data_df.groupby(group_columns).agg({"Total": "sum"}).reset_index()
     )
+
+    # Add period information
+    aggregated_df = add_periods(aggregated_df, period)
+
     return aggregated_df
 
 

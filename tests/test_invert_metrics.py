@@ -11,17 +11,18 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from invert_metrics import calculate_inverts_metrics, calculate_species_richness
+from invert_metrics import calculate_inverts_metrics
 from fish_and_inverts_shared_metrics import (
     calculate_biomass,
-    calculate_total_count_and_density,
-    calculate_herbivore_density,
-    calculate_carnivore_density,
-    calculate_omnivore_density,
-    calculate_detritivore_density,
-    calculate_corallivore_density,
+    calculate_total_count,
+    calculate_herbivore_count,
+    calculate_carnivore_count,
+    calculate_omnivore_count,
+    calculate_detritivore_count,
+    calculate_corallivore_count,
+    calculate_species_richness,
 )
-from utils import create_daily_df, add_periods
+from utils import create_survey_df
 
 
 class TestInvertBiomassCalculation:
@@ -31,9 +32,9 @@ class TestInvertBiomassCalculation:
         self, preprocessed_invert_data, test_constants_dir
     ):
         """Test that biomass is calculated correctly for invertebrates."""
-        daily_df = create_daily_df(preprocessed_invert_data, "inverts")
+        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
         biomass_df = calculate_biomass(
-            daily_df, str(test_constants_dir / "biomass_coeffs_inverts.csv")
+            survey_df, str(test_constants_dir / "biomass_coeffs_inverts.csv")
         )
 
         # Check that biomass column was added
@@ -62,26 +63,21 @@ class TestInvertBiomassCalculation:
 class TestInvertDensityCalculation:
     """Test density calculations for invertebrates."""
 
-    def test_total_count_and_density(
-        self, preprocessed_invert_data, invert_dive_numbers
-    ):
+    def test_total_count_and_density(self, preprocessed_invert_data):
         """Test total count and density calculations."""
-        daily_df = create_daily_df(preprocessed_invert_data, "inverts")
-        from utils import add_periods
+        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
 
-        daily_df = add_periods(daily_df, "seasonal")
-
-        result_df = calculate_total_count_and_density(daily_df, invert_dive_numbers)
+        result_df = calculate_total_count(survey_df)
 
         # Check that the result has the expected columns
-        assert "Total Density" in result_df.columns
+        assert "Total Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
         assert "Site" in result_df.columns
 
-        # For test_survey_001, total count = 50+5+3+8 = 66, dives = 1, density = 66
+        # For test_survey_001, total count = 50+5+3+8 = 66
         survey_001_result = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001_result) == 1
-        assert abs(survey_001_result.iloc[0]["Total Density"] - 66.0) < 0.01
+        assert abs(survey_001_result.iloc[0]["Total Count"] - 66.0) < 0.01
 
 
 class TestInvertFoodGroups:
@@ -138,159 +134,141 @@ class TestInvertFoodGroups:
 
         assert "Gastropods - Tiger Cowrie" in corallivore_inverts
 
-    def test_inverts_herbivore_density_calculation(
+    def test_inverts_herbivore_count_calculation(
         self,
         preprocessed_invert_data,
-        invert_dive_numbers,
         redirect_constants_to_test_data,
     ):
-        """Test that herbivore density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_invert_data, "inverts")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_herbivore_density(
-            daily_df, invert_dive_numbers, "inverts"
-        )
+        """Test that herbivore count is calculated correctly per survey."""
+        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        result_df = calculate_herbivore_count(survey_df, "inverts")
 
         # Verify structure
-        assert "Herbivore Density" in result_df.columns
+        assert "Herbivore Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
-        # test_survey_001: Sea Urchins - Diadema (50) over 1 dive -> density = 50
+        # test_survey_001: Sea Urchins - Diadema (50)
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
-        assert abs(survey_001.iloc[0]["Herbivore Density"] - 50.0) < 0.01
+        assert abs(survey_001.iloc[0]["Herbivore Count"] - 50.0) < 0.01
 
-        # test_survey_002: Sea Urchins - Diadema (45) over 1 dive -> density = 45
+        # test_survey_002: Sea Urchins - Diadema (45)
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
         assert len(survey_002) == 1
-        assert abs(survey_002.iloc[0]["Herbivore Density"] - 45.0) < 0.01
+        assert abs(survey_002.iloc[0]["Herbivore Count"] - 45.0) < 0.01
 
-        # test_survey_003: Sea Urchins - Diadema (30) over 1 dive -> density = 30
+        # test_survey_003: Sea Urchins - Diadema (30)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
         assert len(survey_003) == 1
-        assert abs(survey_003.iloc[0]["Herbivore Density"] - 30.0) < 0.01
+        assert abs(survey_003.iloc[0]["Herbivore Count"] - 30.0) < 0.01
 
-    def test_inverts_carnivore_density_calculation(
+    def test_inverts_carnivore_count_calculation(
         self,
         preprocessed_invert_data,
-        invert_dive_numbers,
         redirect_constants_to_test_data,
     ):
-        """Test that carnivore density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_invert_data, "inverts")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_carnivore_density(
-            daily_df, invert_dive_numbers, "inverts"
-        )
+        """Test that carnivore count is calculated correctly per survey."""
+        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        result_df = calculate_carnivore_count(survey_df, "inverts")
 
         # Verify structure
-        assert "Carnivore Density" in result_df.columns
+        assert "Carnivore Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
-        # test_survey_001: Gastropods - Cone (5) over 1 dive -> density = 5
+        # test_survey_001: Gastropods - Cone (5)
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
-        assert abs(survey_001.iloc[0]["Carnivore Density"] - 5.0) < 0.01
+        assert abs(survey_001.iloc[0]["Carnivore Count"] - 5.0) < 0.01
 
-        # test_survey_002: Sea Stars - Crown of Thorns (2) over 1 dive -> density = 2
+        # test_survey_002: Sea Stars - Crown of Thorns (2)
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
         assert len(survey_002) == 1
-        assert abs(survey_002.iloc[0]["Carnivore Density"] - 2.0) < 0.01
+        assert abs(survey_002.iloc[0]["Carnivore Count"] - 2.0) < 0.01
 
         # test_survey_003: No carnivores -> not in results (treated as 0)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
-        assert len(survey_003) == 0  # No row when density is 0
+        assert len(survey_003) == 0  # No row when count is 0
 
-    def test_inverts_omnivore_density_calculation(
+    def test_inverts_omnivore_count_calculation(
         self,
         preprocessed_invert_data,
-        invert_dive_numbers,
         redirect_constants_to_test_data,
     ):
-        """Test that omnivore density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_invert_data, "inverts")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_omnivore_density(daily_df, invert_dive_numbers, "inverts")
+        """Test that omnivore count is calculated correctly per survey."""
+        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        result_df = calculate_omnivore_count(survey_df, "inverts")
 
         # Verify structure
-        assert "Omnivore Density" in result_df.columns
+        assert "Omnivore Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
-        # test_survey_001: Sea Cucumbers - Other (8) over 1 dive -> density = 8
+        # test_survey_001: Sea Cucumbers - Other (8)
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
-        assert abs(survey_001.iloc[0]["Omnivore Density"] - 8.0) < 0.01
+        assert abs(survey_001.iloc[0]["Omnivore Count"] - 8.0) < 0.01
 
         # test_survey_002: No omnivores -> not in results (treated as 0)
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
-        assert len(survey_002) == 0  # No row when density is 0
+        assert len(survey_002) == 0  # No row when count is 0
 
-        # test_survey_003: Sea Cucumbers - Other (10) over 1 dive -> density = 10
+        # test_survey_003: Sea Cucumbers - Other (10)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
         assert len(survey_003) == 1
-        assert abs(survey_003.iloc[0]["Omnivore Density"] - 10.0) < 0.01
+        assert abs(survey_003.iloc[0]["Omnivore Count"] - 10.0) < 0.01
 
-    def test_inverts_detritivore_density_calculation(
+    def test_inverts_detritivore_count_calculation(
         self,
         preprocessed_invert_data,
-        invert_dive_numbers,
         redirect_constants_to_test_data,
     ):
-        """Test that detritivore density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_invert_data, "inverts")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_detritivore_density(
-            daily_df, invert_dive_numbers, "inverts"
-        )
+        """Test that detritivore count is calculated correctly per survey."""
+        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        result_df = calculate_detritivore_count(survey_df, "inverts")
 
         # Verify structure
-        assert "Detritivore Density" in result_df.columns
+        assert "Detritivore Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
-        # test_survey_001: Bivalves - Giant Clam (3) over 1 dive -> density = 3
+        # test_survey_001: Bivalves - Giant Clam (3)
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
-        assert abs(survey_001.iloc[0]["Detritivore Density"] - 3.0) < 0.01
+        assert abs(survey_001.iloc[0]["Detritivore Count"] - 3.0) < 0.01
 
         # test_survey_002: No detritivores -> not in results (treated as 0)
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
-        assert len(survey_002) == 0  # No row when density is 0
+        assert len(survey_002) == 0  # No row when count is 0
 
-        # test_survey_003: Bivalves - Giant Clam (5) over 1 dive -> density = 5
+        # test_survey_003: Bivalves - Giant Clam (5)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
         assert len(survey_003) == 1
-        assert abs(survey_003.iloc[0]["Detritivore Density"] - 5.0) < 0.01
+        assert abs(survey_003.iloc[0]["Detritivore Count"] - 5.0) < 0.01
 
-    def test_inverts_corallivore_density_calculation(
+    def test_inverts_corallivore_count_calculation(
         self,
         preprocessed_invert_data,
-        invert_dive_numbers,
         redirect_constants_to_test_data,
     ):
-        """Test that corallivore density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_invert_data, "inverts")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_corallivore_density(
-            daily_df, invert_dive_numbers, "inverts"
-        )
+        """Test that corallivore count is calculated correctly per survey."""
+        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        result_df = calculate_corallivore_count(survey_df, "inverts")
 
         # Verify structure
-        assert "Corallivore Density" in result_df.columns
+        assert "Corallivore Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
         # test_survey_001: No corallivores -> not in results (treated as 0)
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
-        assert len(survey_001) == 0  # No row when density is 0
+        assert len(survey_001) == 0  # No row when count is 0
 
-        # test_survey_002: Gastropods - Tiger Cowrie (6) over 1 dive -> density = 6
+        # test_survey_002: Gastropods - Tiger Cowrie (6)
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
         assert len(survey_002) == 1
-        assert abs(survey_002.iloc[0]["Corallivore Density"] - 6.0) < 0.01
+        assert abs(survey_002.iloc[0]["Corallivore Count"] - 6.0) < 0.01
 
         # test_survey_003: No corallivores -> not in results (treated as 0)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
@@ -299,7 +277,6 @@ class TestInvertFoodGroups:
     def test_species_not_in_any_trophic_group(
         self,
         preprocessed_invert_data,
-        invert_dive_numbers,
         redirect_constants_to_test_data,
     ):
         """Test that species not found in any trophic group CSV raise an error."""
@@ -315,21 +292,16 @@ class TestInvertFoodGroups:
 
         # Should raise ValueError when trying to calculate metrics with unknown species
         with pytest.raises(ValueError, match="not found in any trophic group CSV"):
-            calculate_inverts_metrics(
-                modified_data, invert_dive_numbers, "seasonal", include_biomass=False
-            )
+            calculate_inverts_metrics(modified_data, "seasonal", include_biomass=False)
 
 
 class TestSpeciesRichness:
     """Test species richness calculations."""
 
-    def test_species_richness_calculation(
-        self, preprocessed_invert_data, invert_dive_numbers
-    ):
-        """Test that species richness is calculated correctly per site."""
-        daily_df = create_daily_df(preprocessed_invert_data, "inverts")
-
-        result_df = calculate_species_richness(daily_df, invert_dive_numbers)
+    def test_species_richness_result(self, preprocessed_invert_data):
+        """Test that species richness returns dataframe with correct columns and sites."""
+        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        result_df = calculate_species_richness(survey_df)
 
         # Check that result is a DataFrame
         assert isinstance(result_df, pd.DataFrame)
@@ -337,35 +309,33 @@ class TestSpeciesRichness:
         # Check expected columns
         assert "Site" in result_df.columns
         assert "Species Richness" in result_df.columns
-        assert "Average Species Richness" in result_df.columns
-        assert "Number of Surveys" in result_df.columns
+        assert "Survey_ID" in result_df.columns
 
-        # Check that we have results for both sites
-        assert len(result_df) == 2
+        # Check that we have results for each survey
+        assert len(result_df) == 3
+
+        # Check that only the two expected sites are in the results
         sites = result_df["Site"].tolist()
         assert "Test Site A" in sites
         assert "Test Site B" in sites
 
-    def test_species_richness_values(
-        self, preprocessed_invert_data, invert_dive_numbers
-    ):
+    def test_species_richness_calculation(self, preprocessed_invert_data):
         """Test that species richness values are correct."""
-        daily_df = create_daily_df(preprocessed_invert_data, "inverts")
-        result_df = calculate_species_richness(daily_df, invert_dive_numbers)
+        survey_df = create_survey_df(preprocessed_invert_data, "inverts", "seasonal")
+        result_df = calculate_species_richness(survey_df)
 
-        # For Test Site A:
+        # For test_survey_001:
         # Survey 1: Sea Urchins - Diadema, Gastropods - Cone, Bivalves - Giant Clam, Sea Cucumbers - Other (4 species)
-        # Survey 2: Sea Urchins - Diadema, Gastropods - Cone, Sea Stars - Crown of Thorns (3 species)
-        # Unique species total: 5 (all of the above)
-        # Number of surveys: 2
+        # Unique species total: 3
         site_a_result = result_df[result_df["Site"] == "Test Site A"]
         assert len(site_a_result) == 1
         assert site_a_result.iloc[0]["Species Richness"] == 5
-        assert site_a_result.iloc[0]["Number of Surveys"] == 2
-        expected_avg = round(5 / 2, 2)
-        assert (
-            abs(site_a_result.iloc[0]["Average Species Richness"] - expected_avg) < 0.01
-        )
+
+        # For test_survey_002 : Sea Urchins - Diadema, Gastropods - Cone, Sea Stars - Crown of Thorns (3 species)
+        # Unique species total: 5
+        site_a_result = result_df[result_df["Site"] == "Test Site A"]
+        assert len(site_a_result) == 1
+        assert site_a_result.iloc[0]["Species Richness"] == 5
 
         # For Test Site B:
         # Survey 3: Sea Urchins - Diadema, Bivalves - Giant Clam, Sea Cucumbers - Other (3 species)

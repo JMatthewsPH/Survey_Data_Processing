@@ -12,20 +12,20 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from fish_metrics import (
     calculate_fish_metrics,
-    calculate_commercial_count_and_density,
+    calculate_commercial_count,
     calculate_commercial_biomass,
 )
 from fish_and_inverts_shared_metrics import (
     calculate_biomass,
-    calculate_total_count_and_density,
-    calculate_total_biomass_and_density,
-    calculate_herbivore_density,
-    calculate_carnivore_density,
-    calculate_omnivore_density,
-    calculate_detritivore_density,
-    calculate_corallivore_density,
+    calculate_total_count,
+    calculate_total_biomass,
+    calculate_herbivore_count,
+    calculate_carnivore_count,
+    calculate_omnivore_count,
+    calculate_detritivore_count,
+    calculate_corallivore_count,
 )
-from utils import create_daily_df, add_periods
+from utils import create_survey_df
 
 
 class TestFishBiomassCalculation:
@@ -35,9 +35,9 @@ class TestFishBiomassCalculation:
         self, preprocessed_fish_data, test_constants_dir
     ):
         """Test that biomass is calculated correctly using the formula."""
-        daily_df = create_daily_df(preprocessed_fish_data, "fish")
+        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
         biomass_df = calculate_biomass(
-            daily_df, str(test_constants_dir / "biomass_coeffs_fish.csv")
+            survey_df, str(test_constants_dir / "biomass_coeffs_fish.csv")
         )
 
         # Check that biomass column was added
@@ -66,22 +66,21 @@ class TestFishBiomassCalculation:
 class TestFishDensityCalculation:
     """Test density calculations for fish."""
 
-    def test_total_count_and_density(self, preprocessed_fish_data, fish_dive_numbers):
+    def test_total_count_and_density(self, preprocessed_fish_data):
         """Test total count and density calculations."""
-        daily_df = create_daily_df(preprocessed_fish_data, "fish")
-        daily_df = add_periods(daily_df, "seasonal")
+        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
 
-        result_df = calculate_total_count_and_density(daily_df, fish_dive_numbers)
+        result_df = calculate_total_count(survey_df)
 
         # Check that the result has the expected columns
-        assert "Total Density" in result_df.columns
+        assert "Total Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
         assert "Site" in result_df.columns
 
-        # For test_survey_001, total count = 5+10+3+20+2 = 40, dives = 1, density = 40
+        # For test_survey_001, total count = 5+10+3+20+2 = 40
         survey_001_result = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001_result) == 1
-        assert abs(survey_001_result.iloc[0]["Total Density"] - 40.0) < 0.01
+        assert abs(survey_001_result.iloc[0]["Total Count"] - 40.0) < 0.01
 
 
 class TestCommercialFishMetrics:
@@ -108,50 +107,47 @@ class TestCommercialFishMetrics:
         assert "Grouper" not in commercial_fish
 
     def test_commercial_density_calculation(
-        self, preprocessed_fish_data, fish_dive_numbers, redirect_constants_to_test_data
+        self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that commercial fish density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_fish_data, "fish")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_commercial_count_and_density(daily_df, fish_dive_numbers)
+        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_commercial_count(survey_df)
 
         # Verify structure
-        assert "Commercial Density" in result_df.columns
+        assert "Commercial Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
-        # test_survey_001: Parrotfish (5) + Surgeonfish (10) = 15 over 1 dive -> density = 15
+        # test_survey_001: Parrotfish (5) + Surgeonfish (10) = 15
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
-        assert abs(survey_001.iloc[0]["Commercial Density"] - 15.0) < 0.01
+        assert abs(survey_001.iloc[0]["Commercial Count"] - 15.0) < 0.01
 
-        # test_survey_002: Parrotfish (4) + Surgeonfish (8) + Fusilier (15) = 27 over 1 dive -> density = 27
+        # test_survey_002: Parrotfish (4) + Surgeonfish (8) + Fusilier (15) = 27
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
         assert len(survey_002) == 1
-        assert abs(survey_002.iloc[0]["Commercial Density"] - 27.0) < 0.01
+        assert abs(survey_002.iloc[0]["Commercial Count"] - 27.0) < 0.01
 
-        # test_survey_003: Parrotfish (6) over 1 dive -> density = 6
+        # test_survey_003: Parrotfish (6)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
         assert len(survey_003) == 1
-        assert abs(survey_003.iloc[0]["Commercial Density"] - 6.0) < 0.01
+        assert abs(survey_003.iloc[0]["Commercial Count"] - 6.0) < 0.01
 
     def test_commercial_biomass_calculation(
         self,
         preprocessed_fish_data,
-        fish_dive_numbers,
         test_constants_dir,
         redirect_constants_to_test_data,
     ):
         """Test that commercial biomass is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_fish_data, "fish")
-        daily_df = add_periods(daily_df, "seasonal")
-        daily_df = calculate_biomass(
-            daily_df, str(test_constants_dir / "biomass_coeffs_fish.csv")
+        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        survey_df = calculate_biomass(
+            survey_df, str(test_constants_dir / "biomass_coeffs_fish.csv")
         )
-        result_df = calculate_commercial_biomass(daily_df, fish_dive_numbers)
+        result_df = calculate_commercial_biomass(survey_df)
 
         # Verify structure
-        assert "Commercial Biomass Density" in result_df.columns
+        assert "Commercial Biomass" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
@@ -159,15 +155,13 @@ class TestCommercialFishMetrics:
         # - Parrotfish: 5 * 0.0206 * (15^2.949) ≈ 269.65 grams
         # - Surgeonfish: 10 * 0.0157 * (7.5^3.061) ≈ 46.62 grams
         # - Total: 316.27 grams = 0.31627 kg
-        # - Density: 0.31627 kg / 1 dive
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
         expected_biomass_001 = (
             5 * 0.0206 * (15**2.949) + 10 * 0.0157 * (7.5**3.061)
         ) / 1000  # Convert to kg
         assert (
-            abs(survey_001.iloc[0]["Commercial Biomass Density"] - expected_biomass_001)
-            < 0.01
+            abs(survey_001.iloc[0]["Commercial Biomass"] - expected_biomass_001) < 0.01
         )
 
         # test_survey_002:
@@ -175,7 +169,6 @@ class TestCommercialFishMetrics:
         # - Surgeonfish: 8 * 0.0157 * (7.5^3.061) ≈ 37.30 grams
         # - Fusilier: 15 * 0.0061 * (15^3.118) ≈ 279.14 grams
         # - Total: 532.16 grams = 0.53216 kg
-        # - Density: 0.53216 kg / 1 dive
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
         assert len(survey_002) == 1
         expected_biomass_002 = (
@@ -184,20 +177,17 @@ class TestCommercialFishMetrics:
             + 15 * 0.0061 * (15**3.118)
         ) / 1000  # Convert to kg
         assert (
-            abs(survey_002.iloc[0]["Commercial Biomass Density"] - expected_biomass_002)
-            < 0.01
+            abs(survey_002.iloc[0]["Commercial Biomass"] - expected_biomass_002) < 0.01
         )
 
         # test_survey_003:
         # - Parrotfish: 6 * 0.0206 * (7.5^2.949) ≈ 40.43 grams
         # - Total: 40.43 grams = 0.04043 kg
-        # - Density: 0.04043 kg / 1 dive
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
         assert len(survey_003) == 1
         expected_biomass_003 = (6 * 0.0206 * (7.5**2.949)) / 1000  # Convert to kg
         assert (
-            abs(survey_003.iloc[0]["Commercial Biomass Density"] - expected_biomass_003)
-            < 0.01
+            abs(survey_003.iloc[0]["Commercial Biomass"] - expected_biomass_003) < 0.01
         )
 
 
@@ -256,104 +246,100 @@ class TestFishFoodGroups:
         assert "Damselfish" in corallivore_fish
 
     def test_fish_herbivore_density_calculation(
-        self, preprocessed_fish_data, fish_dive_numbers, redirect_constants_to_test_data
+        self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that herbivore density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_fish_data, "fish")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_herbivore_density(daily_df, fish_dive_numbers, "fish")
+        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_herbivore_count(survey_df, "fish")
 
         # Verify structure
-        assert "Herbivore Density" in result_df.columns
+        assert "Herbivore Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
-        # test_survey_001: Surgeonfish - Other (10) over 1 dive -> density = 10
+        # test_survey_001: Surgeonfish - Other (10)
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
-        assert abs(survey_001.iloc[0]["Herbivore Density"] - 10.0) < 0.01
+        assert abs(survey_001.iloc[0]["Herbivore Count"] - 10.0) < 0.01
 
-        # test_survey_002: Surgeonfish - Other (8) + Fusilier (15) = 23 over 1 dive -> density = 23
+        # test_survey_002: Surgeonfish - Other (8) + Fusilier (15) = 23
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
         assert len(survey_002) == 1
-        assert abs(survey_002.iloc[0]["Herbivore Density"] - 23.0) < 0.01
+        assert abs(survey_002.iloc[0]["Herbivore Count"] - 23.0) < 0.01
 
         # test_survey_003: No herbivores -> not in results (treated as 0)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
         assert len(survey_003) == 0  # No row when density is 0
 
     def test_fish_carnivore_density_calculation(
-        self, preprocessed_fish_data, fish_dive_numbers, redirect_constants_to_test_data
+        self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that carnivore density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_fish_data, "fish")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_carnivore_density(daily_df, fish_dive_numbers, "fish")
+        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_carnivore_count(survey_df, "fish")
 
         # Verify structure
-        assert "Carnivore Density" in result_df.columns
+        assert "Carnivore Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
-        # test_survey_001: Grouper (2) over 1 dive -> density = 2
+        # test_survey_001: Grouper (2)
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
-        assert abs(survey_001.iloc[0]["Carnivore Density"] - 2.0) < 0.01
+        assert abs(survey_001.iloc[0]["Carnivore Count"] - 2.0) < 0.01
 
         # test_survey_002: No carnivores -> not in results (treated as 0)
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
         assert len(survey_002) == 0  # No row when density is 0
 
-        # test_survey_003: Grouper (3) over 1 dive -> density = 3
+        # test_survey_003: Grouper (3)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
         assert len(survey_003) == 1
-        assert abs(survey_003.iloc[0]["Carnivore Density"] - 3.0) < 0.01
+        assert abs(survey_003.iloc[0]["Carnivore Count"] - 3.0) < 0.01
 
     def test_fish_omnivore_density_calculation(
-        self, preprocessed_fish_data, fish_dive_numbers, redirect_constants_to_test_data
+        self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that omnivore density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_fish_data, "fish")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_omnivore_density(daily_df, fish_dive_numbers, "fish")
+        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_omnivore_count(survey_df, "fish")
 
         # Verify structure
-        assert "Omnivore Density" in result_df.columns
+        assert "Omnivore Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
-        # test_survey_001: Parrotfish - Other (5) over 1 dive -> density = 5
+        # test_survey_001: Parrotfish - Other (5)
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
-        assert abs(survey_001.iloc[0]["Omnivore Density"] - 5.0) < 0.01
+        assert abs(survey_001.iloc[0]["Omnivore Count"] - 5.0) < 0.01
 
-        # test_survey_002: Parrotfish - Other (4) over 1 dive -> density = 4
+        # test_survey_002: Parrotfish - Other (4)
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
         assert len(survey_002) == 1
-        assert abs(survey_002.iloc[0]["Omnivore Density"] - 4.0) < 0.01
+        assert abs(survey_002.iloc[0]["Omnivore Count"] - 4.0) < 0.01
 
-        # test_survey_003: Parrotfish - Other (6) over 1 dive -> density = 6
+        # test_survey_003: Parrotfish - Other (6)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
         assert len(survey_003) == 1
-        assert abs(survey_003.iloc[0]["Omnivore Density"] - 6.0) < 0.01
+        assert abs(survey_003.iloc[0]["Omnivore Count"] - 6.0) < 0.01
 
     def test_fish_detritivore_density_calculation(
-        self, preprocessed_fish_data, fish_dive_numbers, redirect_constants_to_test_data
+        self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that detritivore density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_fish_data, "fish")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_detritivore_density(daily_df, fish_dive_numbers, "fish")
+        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_detritivore_count(survey_df, "fish")
 
         # Verify structure
-        assert "Detritivore Density" in result_df.columns
+        assert "Detritivore Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
-        # test_survey_001: Rabbitfish (3) over 1 dive -> density = 3
+        # test_survey_001: Rabbitfish (3)
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
-        assert abs(survey_001.iloc[0]["Detritivore Density"] - 3.0) < 0.01
+        assert abs(survey_001.iloc[0]["Detritivore Count"] - 3.0) < 0.01
 
         # test_survey_002: No detritivores -> not in results (treated as 0)
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
@@ -364,34 +350,33 @@ class TestFishFoodGroups:
         assert len(survey_003) == 0  # No row when density is 0
 
     def test_fish_corallivore_density_calculation(
-        self, preprocessed_fish_data, fish_dive_numbers, redirect_constants_to_test_data
+        self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that corallivore density is calculated correctly per survey."""
-        daily_df = create_daily_df(preprocessed_fish_data, "fish")
-        daily_df = add_periods(daily_df, "seasonal")
-        result_df = calculate_corallivore_density(daily_df, fish_dive_numbers, "fish")
+        survey_df = create_survey_df(preprocessed_fish_data, "fish", "seasonal")
+        result_df = calculate_corallivore_count(survey_df, "fish")
 
         # Verify structure
-        assert "Corallivore Density" in result_df.columns
+        assert "Corallivore Count" in result_df.columns
         assert "Survey_ID" in result_df.columns
 
         # Test specific values
-        # test_survey_001: Damselfish (20) over 1 dive -> density = 20
+        # test_survey_001: Damselfish (20)
         survey_001 = result_df[result_df["Survey_ID"] == "test_survey_001"]
         assert len(survey_001) == 1
-        assert abs(survey_001.iloc[0]["Corallivore Density"] - 20.0) < 0.01
+        assert abs(survey_001.iloc[0]["Corallivore Count"] - 20.0) < 0.01
 
         # test_survey_002: No corallivores -> not in results (treated as 0)
         survey_002 = result_df[result_df["Survey_ID"] == "test_survey_002"]
         assert len(survey_002) == 0  # No row when density is 0
 
-        # test_survey_003: Damselfish (25) over 1 dive -> density = 25
+        # test_survey_003: Damselfish (25)
         survey_003 = result_df[result_df["Survey_ID"] == "test_survey_003"]
         assert len(survey_003) == 1
-        assert abs(survey_003.iloc[0]["Corallivore Density"] - 25.0) < 0.01
+        assert abs(survey_003.iloc[0]["Corallivore Count"] - 25.0) < 0.01
 
     def test_species_not_in_any_trophic_group(
-        self, preprocessed_fish_data, fish_dive_numbers, redirect_constants_to_test_data
+        self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that species not found in any trophic group CSV raise an error."""
         # Create a modified dataset with a species that doesn't exist in any CSV
@@ -406,4 +391,4 @@ class TestFishFoodGroups:
 
         # Should raise ValueError when trying to calculate metrics with unknown species
         with pytest.raises(ValueError, match="not found in any trophic group CSV"):
-            calculate_fish_metrics(modified_data, fish_dive_numbers, "seasonal")
+            calculate_fish_metrics(modified_data, "seasonal")

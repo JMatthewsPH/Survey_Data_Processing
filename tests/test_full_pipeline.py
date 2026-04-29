@@ -20,12 +20,10 @@ class TestFishMetricsFullPipeline:
     """Integration tests for fish metrics pipeline."""
 
     def test_calculate_fish_metrics_runs(
-        self, preprocessed_fish_data, fish_dive_numbers, redirect_constants_to_test_data
+        self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that the main fish metrics function runs without errors."""
-        result_df = calculate_fish_metrics(
-            preprocessed_fish_data, fish_dive_numbers, "seasonal"
-        )
+        result_df = calculate_fish_metrics(preprocessed_fish_data, "seasonal")
 
         # Check that result has expected structure
         assert isinstance(result_df, pd.DataFrame)
@@ -72,12 +70,10 @@ class TestFishMetricsFullPipeline:
         assert "Test Site B" in sites
 
     def test_no_nan_in_final_results(
-        self, preprocessed_fish_data, fish_dive_numbers, redirect_constants_to_test_data
+        self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Test that final metrics don't contain unexpected NaN values."""
-        result_df = calculate_fish_metrics(
-            preprocessed_fish_data, fish_dive_numbers, "seasonal"
-        )
+        result_df = calculate_fish_metrics(preprocessed_fish_data, "seasonal")
 
         # Density columns should not have NaN (they're filled with 0)
         # Check base metric columns (without suffixes like _N, _SD, etc.)
@@ -91,12 +87,10 @@ class TestFishMetricsFullPipeline:
             assert not result_df[col].isna().any(), f"Column {col} contains NaN values"
 
     def test_final_output_values(
-        self, preprocessed_fish_data, fish_dive_numbers, redirect_constants_to_test_data
+        self, preprocessed_fish_data, redirect_constants_to_test_data
     ):
         """Integration test: verify all final output values match expected calculations."""
-        result_df = calculate_fish_metrics(
-            preprocessed_fish_data, fish_dive_numbers, "seasonal"
-        )
+        result_df = calculate_fish_metrics(preprocessed_fish_data, "seasonal")
 
         # Test Site A: 2 surveys
         site_a = result_df[result_df["Site"] == "Test Site A"].iloc[0]
@@ -259,13 +253,11 @@ class TestInvertMetricsFullPipeline:
     def test_calculate_inverts_metrics_with_biomass(
         self,
         preprocessed_invert_data,
-        invert_dive_numbers,
         redirect_constants_to_test_data,
     ):
         """Test that the main inverts metrics function runs with biomass."""
         result_df = calculate_inverts_metrics(
             preprocessed_invert_data,
-            invert_dive_numbers,
             "seasonal",
             include_biomass=True,
         )
@@ -308,13 +300,11 @@ class TestInvertMetricsFullPipeline:
     def test_calculate_inverts_metrics_without_biomass(
         self,
         preprocessed_invert_data,
-        invert_dive_numbers,
         redirect_constants_to_test_data,
     ):
-        """Test that the main inverts metrics function runs without biomass."""
+        """Test that the main inverts metrics function runs without errors."""
         result_df = calculate_inverts_metrics(
             preprocessed_invert_data,
-            invert_dive_numbers,
             "seasonal",
             include_biomass=False,
         )
@@ -338,13 +328,11 @@ class TestInvertMetricsFullPipeline:
     def test_final_output_values(
         self,
         preprocessed_invert_data,
-        invert_dive_numbers,
         redirect_constants_to_test_data,
     ):
         """Integration test: verify all final output values match expected calculations."""
         result_df = calculate_inverts_metrics(
             preprocessed_invert_data,
-            invert_dive_numbers,
             "seasonal",
             include_biomass=False,
         )
@@ -486,13 +474,9 @@ class TestInvertMetricsFullPipeline:
 class TestSubsMetricsFullPipeline:
     """Integration tests for substrate metrics pipeline."""
 
-    def test_calculate_subs_metrics_runs(
-        self, preprocessed_subs_data, subs_dive_numbers
-    ):
+    def test_calculate_subs_metrics_runs(self, preprocessed_subs_data):
         """Test that the main subs metrics function runs without errors."""
-        result_df = calculate_subs_metrics(
-            preprocessed_subs_data, subs_dive_numbers, "seasonal"
-        )
+        result_df = calculate_subs_metrics(preprocessed_subs_data, "seasonal")
 
         # Check that result has expected structure
         assert isinstance(result_df, pd.DataFrame)
@@ -537,13 +521,9 @@ class TestSubsMetricsFullPipeline:
         assert "Test Site A" in sites
         assert "Test Site B" in sites
 
-    def test_coverage_values_are_percentages(
-        self, preprocessed_subs_data, subs_dive_numbers
-    ):
+    def test_coverage_values_are_percentages(self, preprocessed_subs_data):
         """Test that coverage values are percentages (0-100)."""
-        result_df = calculate_subs_metrics(
-            preprocessed_subs_data, subs_dive_numbers, "seasonal"
-        )
+        result_df = calculate_subs_metrics(preprocessed_subs_data, "seasonal")
 
         # All coverage percentages should be between 0 and 100
         # Check the base metric columns (without suffixes like _N, _SD, etc.)
@@ -559,11 +539,9 @@ class TestSubsMetricsFullPipeline:
             # For our test data, values should be under 100%
             assert (result_df[col] <= 100).all(), f"{col} has values over 100%"
 
-    def test_no_nan_in_final_results(self, preprocessed_subs_data, subs_dive_numbers):
+    def test_no_nan_in_final_results(self, preprocessed_subs_data):
         """Test that final metrics don't contain unexpected NaN values."""
-        result_df = calculate_subs_metrics(
-            preprocessed_subs_data, subs_dive_numbers, "seasonal"
-        )
+        result_df = calculate_subs_metrics(preprocessed_subs_data, "seasonal")
 
         # Coverage columns should not have NaN (they're filled with 0)
         # Check the base metric columns (without suffixes)
@@ -576,11 +554,9 @@ class TestSubsMetricsFullPipeline:
         for col in coverage_cols:
             assert not result_df[col].isna().any(), f"Column {col} contains NaN values"
 
-    def test_final_output_values(self, preprocessed_subs_data, subs_dive_numbers):
+    def test_final_output_values(self, preprocessed_subs_data):
         """Integration test: verify all final output values match expected calculations."""
-        result_df = calculate_subs_metrics(
-            preprocessed_subs_data, subs_dive_numbers, "seasonal"
-        )
+        result_df = calculate_subs_metrics(preprocessed_subs_data, "seasonal")
 
         # Test Site A: 2 surveys
         site_a = result_df[result_df["Site"] == "Test Site A"].iloc[0]

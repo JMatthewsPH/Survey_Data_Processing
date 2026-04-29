@@ -19,20 +19,17 @@ from subs_metrics import (
     calculate_rubble_cover,
     calculate_bleaching,
 )
-from utils import create_daily_df, add_periods
+from utils import create_survey_df
 
 
 class TestHardCoralCover:
     """Test hard coral cover calculations."""
 
-    def test_hard_coral_cover_calculation(
-        self, preprocessed_subs_data, subs_dive_numbers
-    ):
+    def test_hard_coral_cover_calculation(self, preprocessed_subs_data):
         """Test that hard coral cover is calculated correctly."""
-        daily_df = create_daily_df(preprocessed_subs_data, "subs")
-        daily_df = add_periods(daily_df, "seasonal")
+        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
-        result_df = calculate_hard_coral_cover(daily_df, subs_dive_numbers)
+        result_df = calculate_hard_coral_cover(survey_df)
 
         # Check columns
         assert "Hard Coral Cover" in result_df.columns
@@ -52,11 +49,11 @@ class TestHardCoralCover:
 
     def test_hard_coral_identification(self, preprocessed_subs_data):
         """Test that hard coral groups are correctly identified regardless of health status."""
-        daily_df = create_daily_df(preprocessed_subs_data, "subs")
+        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
         # Test that hard coral groups are identified
-        hard_coral_groups = daily_df[
-            daily_df["Group"].str.contains("Hard Coral", na=False)
+        hard_coral_groups = survey_df[
+            survey_df["Group"].str.contains("Hard Coral", na=False)
         ]
         unique_groups = hard_coral_groups["Group"].unique()
 
@@ -71,10 +68,10 @@ class TestHardCoralCover:
         assert "Partially Bleaching" in hard_coral_statuses
 
         # Verify that bleached hard coral is still counted as hard coral
-        bleached_hard_coral = daily_df[
-            (daily_df["Group"].str.contains("Hard Coral", na=False))
+        bleached_hard_coral = survey_df[
+            (survey_df["Group"].str.contains("Hard Coral", na=False))
             & (
-                daily_df["Status"].str.contains(
+                survey_df["Status"].str.contains(
                     "Fully Bleaching|Partially Bleaching", na=False
                 )
             )
@@ -104,14 +101,11 @@ class TestHardCoralCover:
 class TestSoftCoralCover:
     """Test soft coral cover calculations."""
 
-    def test_soft_coral_cover_calculation(
-        self, preprocessed_subs_data, subs_dive_numbers
-    ):
+    def test_soft_coral_cover_calculation(self, preprocessed_subs_data):
         """Test that soft coral cover is calculated correctly."""
-        daily_df = create_daily_df(preprocessed_subs_data, "subs")
-        daily_df = add_periods(daily_df, "seasonal")
+        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
-        result_df = calculate_soft_coral_cover(daily_df, subs_dive_numbers)
+        result_df = calculate_soft_coral_cover(survey_df)
 
         # Check columns
         assert "Soft Coral Cover" in result_df.columns
@@ -130,14 +124,11 @@ class TestSoftCoralCover:
 class TestFreshAlgaeCover:
     """Test fresh algae cover calculations."""
 
-    def test_fresh_algae_cover_calculation(
-        self, preprocessed_subs_data, subs_dive_numbers
-    ):
+    def test_fresh_algae_cover_calculation(self, preprocessed_subs_data):
         """Test that fresh algae cover is calculated correctly."""
-        daily_df = create_daily_df(preprocessed_subs_data, "subs")
-        daily_df = add_periods(daily_df, "seasonal")
+        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
-        result_df = calculate_fresh_algae_cover(daily_df, subs_dive_numbers)
+        result_df = calculate_fresh_algae_cover(survey_df)
 
         # Check columns
         assert "Fresh Algae Cover" in result_df.columns
@@ -166,12 +157,11 @@ class TestFreshAlgaeCover:
 class TestRubbleCover:
     """Test rubble cover calculations."""
 
-    def test_rubble_cover_calculation(self, preprocessed_subs_data, subs_dive_numbers):
+    def test_rubble_cover_calculation(self, preprocessed_subs_data):
         """Test that rubble cover is calculated correctly."""
-        daily_df = create_daily_df(preprocessed_subs_data, "subs")
-        daily_df = add_periods(daily_df, "seasonal")
+        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
-        result_df = calculate_rubble_cover(daily_df, subs_dive_numbers)
+        result_df = calculate_rubble_cover(survey_df)
 
         # Check columns
         assert "Rubble Cover" in result_df.columns
@@ -188,12 +178,11 @@ class TestRubbleCover:
 class TestBleaching:
     """Test bleaching calculations."""
 
-    def test_bleaching_calculation(self, preprocessed_subs_data, subs_dive_numbers):
+    def test_bleaching_calculation(self, preprocessed_subs_data):
         """Test that bleaching percentage is calculated correctly."""
-        daily_df = create_daily_df(preprocessed_subs_data, "subs")
-        daily_df = add_periods(daily_df, "seasonal")
+        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
-        result_df = calculate_bleaching(daily_df, subs_dive_numbers)
+        result_df = calculate_bleaching(survey_df)
 
         # Check columns
         assert "Bleaching" in result_df.columns
@@ -218,12 +207,11 @@ class TestBleaching:
                 abs(survey_002_result.iloc[0]["Bleaching"] - expected_bleaching) < 0.1
             )
 
-    def test_no_bleaching(self, preprocessed_subs_data, subs_dive_numbers):
+    def test_no_bleaching(self, preprocessed_subs_data):
         """Test handling of surveys with no bleaching."""
-        daily_df = create_daily_df(preprocessed_subs_data, "subs")
-        daily_df = add_periods(daily_df, "seasonal")
+        survey_df = create_survey_df(preprocessed_subs_data, "subs", "seasonal")
 
-        result_df = calculate_bleaching(daily_df, subs_dive_numbers)
+        result_df = calculate_bleaching(survey_df)
 
         # test_survey_003 has no bleached coral (all healthy)
         survey_003_result = result_df[result_df["Survey_ID"] == "test_survey_003"]
