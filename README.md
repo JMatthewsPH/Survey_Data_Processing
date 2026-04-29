@@ -67,9 +67,12 @@ conda activate ./env
 
 Edit `main.py` to configure:
 
-- Period: `seasonal` or `monthly`
-- To run in development or production mode (see below)
-- Include/exclude biomass calculations
+- **Period**: Choose aggregation period
+  - `"seasonal"`: Individual seasons (Spring, Summer, Autumn, Winter)
+  - `"monthly"`: Monthly aggregation
+  - `"biannual"`: 6-month periods (Spring/Summer: Mar-Aug, Autumn/Winter: Sep-Feb)
+- **Mode**: Development or production (see below)
+- **Biomass**: Include/exclude biomass calculations
 
 **Development vs Production Mode:**
 
@@ -88,7 +91,7 @@ python main.py
 
 ### Running Tests
 
-The project includes a comprehensive test suite with 50+ tests covering all metrics.
+The project includes a comprehensive test suite with 75+ tests covering all metrics and utility functions.
 
 **Quick Start:**
 

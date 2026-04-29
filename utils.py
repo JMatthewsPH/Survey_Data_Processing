@@ -35,6 +35,10 @@ def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
     Parameters:
     time_df (pd.DataFrame): Any dataframe containing a 'Date' column (will be used for
     fish survey data and dive data.
+    period (str): The period type for aggregation:
+        - "monthly": Groups by month
+        - "seasonal": Groups by individual seasons (Spring, Summer, Autumn, Winter)
+        - "biannual": Groups by 6-month periods (Spring/Summer: Mar-Aug, Autumn/Winter: Sep-Feb)
 
     Returns:
     pd.DataFrame: The DataFrame with the period for each survey.
@@ -67,10 +71,40 @@ def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
             season = f"Autumn {year}"
         return season
 
+    def map_date_to_biannual(date: pd.Timestamp) -> str:
+        """
+        Map a date to a 6-month period label.
+        Sep-Feb: 'Autumn/Winter 24/25'
+        Mar-Aug: 'Spring/Summer 24'
+
+        Parameters:
+        date (pd.Timestamp): The date to map.
+
+        Returns:
+        str: The biannual period label.
+        """
+        month = date.month
+        year = date.year
+
+        if month in [3, 4, 5, 6, 7, 8]:
+            # Spring/Summer: Mar-Aug
+            period = f"Spring/Summer {str(year)[-2:]}"
+        else:
+            # Autumn/Winter: Sep-Feb (spans two years)
+            if month in [9, 10, 11, 12]:
+                # Sep-Dec: Start of Autumn/Winter period
+                period = f"Autumn/Winter {str(year)[-2:]}/{str(year + 1)[-2:]}"
+            else:  # month in [1, 2]
+                # Jan-Feb: End of Autumn/Winter period
+                period = f"Autumn/Winter {str(year - 1)[-2:]}/{str(year)[-2:]}"
+        return period
+
     if period == "monthly":
         time_df["Period"] = time_df["Date"].dt.to_period("M")
     elif period == "seasonal":
         time_df["Period"] = time_df["Date"].map(map_date_to_season)
+    elif period == "biannual":
+        time_df["Period"] = time_df["Date"].map(map_date_to_biannual)
     return time_df
 
 
@@ -84,7 +118,7 @@ def prepare_survey_df(
     all_survey_data_df (pd.DataFrame): The DataFrame containing all data
     at individual survey level.
     group (str): The data group (e.g., "fish", "inverts", "subs").
-    period (str): The period for aggregation (e.g., "seasonal", "monthly").
+    period (str): The period for aggregation (e.g., "seasonal", "monthly", "biannual").
 
     Returns:
     pd.DataFrame: A DataFrame with one row per unique survey (Survey_ID) and
@@ -125,7 +159,7 @@ def save_all_sites_dataframes(
 
     Parameters:
     results_df (pd.DataFrame): The DataFrame containing daily fish results.
-    period (str): The period for aggregation (e.g., "seasonal", "monthly").
+    period (str): The period for aggregation (e.g., "seasonal", "monthly", "biannual").
     group (str): The data group (e.g., "fish", "inverts", "subs").
     """
     # Define sites to exclude from output
@@ -166,7 +200,7 @@ def save_individual_site_dataframes(
 
     Parameters:
     results_df (pd.DataFrame): The DataFrame containing daily fish results.
-    period (str): The period for aggregation (e.g., "seasonal", "monthly").
+    period (str): The period for aggregation (e.g., "seasonal", "monthly", "biannual").
     group (str): The data group (e.g., "fish", "inverts", "subs").
     """
     # Define sites to exclude from output
@@ -201,24 +235,50 @@ def save_individual_site_dataframes(
 
 
 def period_sort_key(period_str):
-    # Match e.g. "Winter 17/18", "Autumn 2018", etc.
-    match = re.match(r"(\w+)\s+(\d{2,4})(?:/(\d{2}))?", period_str)
-    if not match:
-        return (9999, 99)  # Put unrecognized at end
+    """
+    Sort key function for period strings.
+    Handles seasonal (e.g., "Winter 17/18", "Autumn 2018"),
+    biannual (e.g., "Spring/Summer 24", "Autumn/Winter 24/25"),
+    and monthly periods.
+    """
+    # Try to match biannual format first (e.g., "Spring/Summer 24" or "Autumn/Winter 24/25")
+    biannual_match = re.match(r"(\w+)/(\w+)\s+(\d{2,4})(?:/(\d{2}))?", period_str)
+    if biannual_match:
+        season1, season2, year1, year2 = biannual_match.groups()
+        # Convert to full year
+        year1 = int(year1) if len(year1) == 4 else 2000 + int(year1)
+        if year2:
+            year2 = 2000 + int(year2)
+            year = year1  # Use the first year for sorting
+        else:
+            year = year1
 
-    season, year1, year2 = match.groups()
-    # Convert to full year
-    year1 = int(year1) if len(year1) == 4 else 2000 + int(year1)
-    if year2:
-        year2 = 2000 + int(year2)
-        year = year1  # Use the first year for sorting
-    else:
-        year = year1
+        # Assign order: Spring/Summer=0.5, Autumn/Winter=3.5
+        if season1 == "Spring":
+            s_order = 0.5  # Spring/Summer comes first
+        else:
+            s_order = 3.5  # Autumn/Winter comes after
+        return (year, s_order)
 
-    # Assign season order: Winter=0, Spring=1, Summer=2, Autumn=3
-    season_order = {"Winter": 4, "Spring": 1, "Summer": 2, "Autumn": 3}
-    s_order = season_order.get(season, 99)
-    return (year, s_order)
+    # Match seasonal format (e.g., "Winter 17/18", "Autumn 2018")
+    seasonal_match = re.match(r"(\w+)\s+(\d{2,4})(?:/(\d{2}))?", period_str)
+    if seasonal_match:
+        season, year1, year2 = seasonal_match.groups()
+        # Convert to full year
+        year1 = int(year1) if len(year1) == 4 else 2000 + int(year1)
+        if year2:
+            year2 = 2000 + int(year2)
+            year = year1  # Use the first year for sorting
+        else:
+            year = year1
+
+        # Assign season order: Winter=4, Spring=1, Summer=2, Autumn=3
+        season_order = {"Winter": 4, "Spring": 1, "Summer": 2, "Autumn": 3}
+        s_order = season_order.get(season, 99)
+        return (year, s_order)
+
+    # If no match, put at end
+    return (9999, 99)
 
 
 def find_latest_data_files(input_dir: str = "data/input") -> dict:

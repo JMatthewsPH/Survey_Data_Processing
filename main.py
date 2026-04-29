@@ -22,7 +22,7 @@ from utils import (
 # ============================================================================
 DEV_MODE = True  # Set to True for development, False for production
 
-period = "seasonal"  # seasonal or monthly
+period = "seasonal"  # Options: "monthly", "seasonal" (3-month periods) or "biannual" (6-month periods)
 
 # Load data files based on mode
 if DEV_MODE:

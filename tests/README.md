@@ -12,6 +12,7 @@ tests/
 ├── test_subs_metrics.py     # Tests for substrate metrics calculations
 ├── test_statistics.py       # Tests for statistics calculcations on computed metrics
 ├── test_full_pipeline.py    # End-to-end integration tests for each set of metrics
+├── test_utils.py            # Tests for utility functions (period assignment, sorting)
 ├── test_data/               # Test data directory
 │   ├── input/              # Sample CSV files for testing
 │   │   ├── test_fish.csv
@@ -72,8 +73,11 @@ pytest tests/test_invert_metrics.py -v
 # Test only substrate metrics
 pytest tests/test_subs_metrics.py -v
 
+# Test only utility functions
+pytest tests/test_utils.py -v
+
 # Test only integration tests
-pytest tests/test_integration.py -v
+pytest tests/test_full_pipeline.py -v
 ```
 
 ### Run Specific Test Classes or Methods
