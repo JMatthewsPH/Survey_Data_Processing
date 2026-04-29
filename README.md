@@ -74,6 +74,14 @@ Edit `main.py` to configure:
 - **Mode**: Development or production (see below)
 - **Biomass**: Include/exclude biomass calculations
 
+## At the end of a season
+
+Run the code with period="seasonal" at the end of each season. The MCP Data Dashboard reads in the CSV files associated to each individual site from the output/fish/seasonal/, output/inverts/seasonal/ and output/subs/seasonal/ folders.
+
+## At the end of a 6 month period (end of Feb and end of Aug)
+
+Run the code with period="biannual". This is for the science team to use in data analysis and report writing. They should use the CSVs for All Sites for each group, located at output/fish/biannual/All_Sites.csv, output/inverts/biannual/All_Sites.csv and output/subs/biannual/All_Sites.csv
+
 **Development vs Production Mode:**
 
 The pipeline supports two modes via the `DEV_MODE` flag in `main.py`:

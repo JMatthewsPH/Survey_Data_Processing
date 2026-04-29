@@ -186,7 +186,7 @@ def save_all_sites_dataframes(
         os.makedirs(f"{output_dir}/{group}/{period}")
 
     # Filter out excluded sites and save only the ones we want
-    filename = f"{output_dir}/{group}/{period}/All Sites.csv"
+    filename = f"{output_dir}/{group}/{period}/All_Sites.csv"
     results_df.to_csv(filename, index=False)
     print(f"Saved {filename}")
 

@@ -22,15 +22,15 @@ from utils import (
 # ============================================================================
 DEV_MODE = True  # Set to True for development, False for production
 
-period = "seasonal"  # Options: "monthly", "seasonal" (3-month periods) or "biannual" (6-month periods)
+period = "biannual"  # Options: "monthly", "seasonal" (3-month periods) or "biannual" (6-month periods)
 
 # Load data files based on mode
 if DEV_MODE:
     print("=== DEVELOPMENT MODE: Using specified data files ===")
     data_files = {
-        "fish": "data/input/Underconstruction Benthic DECFEB.csv",  # Update as needed
-        "inverts": "data/input/Underconstruction Benthic DECFEB.csv",  # Update as needed
-        "subs": "data/input/Underconstruction Benthic DECFEB.csv",  # Update as needed
+        "fish": "data/input/DBMCP_Fish_2017-08-01_2025-08-31.csv",  # Update as needed
+        "inverts": "data/input/DBMCP_Inverts_2017-08-01_2025-08-31.csv",  # Update as needed
+        "subs": "data/input/DBMCP_Substrates_2017-08-01_2025-08-31.csv",  # Update as needed
     }
     print(f"Fish: {data_files['fish']}")
     print(f"Inverts: {data_files['inverts']}")
