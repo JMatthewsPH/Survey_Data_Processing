@@ -20,9 +20,9 @@ from utils import (
 # ============================================================================
 # CONFIGURATION: Toggle between development and production mode
 # ============================================================================
-DEV_MODE = True  # Set to True for development, False for production
+DEV_MODE = False  # Set to True for development, False for production
 
-period = "biannual"  # Options: "monthly", "seasonal" (3-month periods) or "biannual" (6-month periods)
+period = "seasonal"  # Options: "monthly", "seasonal" (3-month periods) or "biannual" (6-month periods)
 
 # Load data files based on mode
 if DEV_MODE:
