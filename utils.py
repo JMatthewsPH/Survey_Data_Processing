@@ -8,54 +8,24 @@ import pandas as pd
 from scipy import stats
 
 
-def determine_number_of_dives_per_period(
-    survey_data_by_day_df: pd.DataFrame, period: str
-) -> pd.DataFrame:
-    """
-    Determine the number of dives per day for each site.
-
-    Parameters:
-    survey_data_df (pd.DataFrame): The DataFrame containing all fish data.
-
-    Returns:
-    pd.DataFrame: The DataFrame with the number of dives per day for each site.
-    """
-    survey_data_by_day_df = add_periods(survey_data_by_day_df, period)
-    survey_data_by_day_df = survey_data_by_day_df.groupby(["Period", "Site"])[
-        "Survey_ID"
-    ].nunique()
-    return survey_data_by_day_df
-
-
-def determine_number_of_dives_per_day(
-    survey_data_by_day_df: pd.DataFrame,
-) -> pd.DataFrame:
-    """
-    Determine the number of dives per day for each site.
-
-    Parameters:
-    survey_data_by_day_df (pd.DataFrame): Survey data aggregated at the survey level.
-
-    Returns:
-    pd.DataFrame: A Series indexed by (Date, Site) with the number of unique surveys.
-    """
-    return survey_data_by_day_df.groupby(["Date", "Site"])["Survey_ID"].nunique()
-
-
-def determine_number_of_dives_per_survey(
+def determine_number_of_surveys_per_site_for_period(
     survey_data_df: pd.DataFrame,
-) -> pd.Series:
+) -> pd.DataFrame:
     """
-    Determine the number of dives associated with each survey (Survey_ID).
+    Determine the number of surveys per site for each period.
 
     Parameters:
-    survey_data_df (pd.DataFrame): Survey dataframe containing Survey_ID.
+    survey_data_df (pd.DataFrame): The DataFrame containing all survey data.
 
     Returns:
-    pd.Series: Series indexed by Survey_ID with the number of dives for that survey.
+    pd.DataFrame: The DataFrame with the number of surveys per site for each period.
     """
-    unique_ids = survey_data_df["Survey_ID"].dropna().unique()
-    return pd.Series(1, index=unique_ids)
+    surveys_per_site_per_period_df = (
+        survey_data_df.groupby(["Period", "Site"])["Survey_ID"]
+        .nunique()
+        .reset_index(name="Number of Surveys")
+    )
+    return surveys_per_site_per_period_df
 
 
 def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
@@ -65,6 +35,10 @@ def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
     Parameters:
     time_df (pd.DataFrame): Any dataframe containing a 'Date' column (will be used for
     fish survey data and dive data.
+    period (str): The period type for aggregation:
+        - "monthly": Groups by month
+        - "seasonal": Groups by individual seasons (Spring, Summer, Autumn, Winter)
+        - "biannual": Groups by 6-month periods (Spring/Summer: Mar-Aug, Autumn/Winter: Sep-Feb)
 
     Returns:
     pd.DataFrame: The DataFrame with the period for each survey.
@@ -97,36 +71,68 @@ def add_periods(time_df: pd.DataFrame, period: str) -> pd.DataFrame:
             season = f"Autumn {year}"
         return season
 
+    def map_date_to_biannual(date: pd.Timestamp) -> str:
+        """
+        Map a date to a 6-month period label.
+        Sep-Feb: 'Autumn/Winter 24/25'
+        Mar-Aug: 'Spring/Summer 24'
+
+        Parameters:
+        date (pd.Timestamp): The date to map.
+
+        Returns:
+        str: The biannual period label.
+        """
+        month = date.month
+        year = date.year
+
+        if month in [3, 4, 5, 6, 7, 8]:
+            # Spring/Summer: Mar-Aug
+            period = f"Spring/Summer {str(year)[-2:]}"
+        else:
+            # Autumn/Winter: Sep-Feb (spans two years)
+            if month in [9, 10, 11, 12]:
+                # Sep-Dec: Start of Autumn/Winter period
+                period = f"Autumn/Winter {str(year)[-2:]}/{str(year + 1)[-2:]}"
+            else:  # month in [1, 2]
+                # Jan-Feb: End of Autumn/Winter period
+                period = f"Autumn/Winter {str(year - 1)[-2:]}/{str(year)[-2:]}"
+        return period
+
     if period == "monthly":
         time_df["Period"] = time_df["Date"].dt.to_period("M")
     elif period == "seasonal":
         time_df["Period"] = time_df["Date"].map(map_date_to_season)
+    elif period == "biannual":
+        time_df["Period"] = time_df["Date"].map(map_date_to_biannual)
     return time_df
 
 
-def create_daily_df(all_survey_data_df: pd.DataFrame, group: str) -> pd.DataFrame:
+def prepare_survey_df(
+    all_survey_data_df: pd.DataFrame, group: str, period: str
+) -> pd.DataFrame:
     """
-    Aggregate all fish survey data to create a dataframe that shows the total biomass
-    and number of fish spotted for each fish category of each size seen on each day at
-    each dive site. This is used to calculate the fish metrics for any period.
+    Prepares dataframe for use in metric calculation - adding and
+    removing rows.
 
-    all_fish_survey_data_df (pd.DataFrame): The DataFrame containing all fish data
-    at indivudual survey level.
+    all_survey_data_df (pd.DataFrame): The DataFrame containing all data
+    at individual survey level.
+    group (str): The data group (e.g., "fish", "inverts", "subs").
+    period (str): The period for aggregation (e.g., "seasonal", "monthly", "biannual").
 
     Returns:
-    pd.DataFrame: A DataFrame containing the total biomass and number of fish spotted
-    for each fish category of each size per day and dive site
+    pd.DataFrame: A DataFrame with one row per unique survey (Survey_ID) and
+    either Species and Size for fish/inverts or Group and Status for substrates,
+    displaying the aggregated totals along with a Total column. Keeps Depth for
+    depth-specific richness calculations.
     """
-    group_columns = ["Survey_ID", "Date", "Site"]
-    if group != "subs":
-        group_columns.extend(["Species", "Size"])
-    else:
-        group_columns.extend(["Group", "Status"])
-
-    aggregated_df = (
-        all_survey_data_df.groupby(group_columns).agg({"Total": "sum"}).reset_index()
+    # Add period information
+    prepared_df = add_periods(all_survey_data_df, period)
+    # Remove unused columns (keeping Depth for species richness calculations)
+    prepared_df = prepared_df.drop(
+        columns=["Zone", "Water_Temp", "Visibility", "Current"]
     )
-    return aggregated_df
+    return prepared_df
 
 
 def prepare_results_df(survey_data_df: pd.DataFrame) -> pd.DataFrame:
@@ -145,16 +151,56 @@ def prepare_results_df(survey_data_df: pd.DataFrame) -> pd.DataFrame:
     return unique_combinations
 
 
+def save_all_sites_dataframes(
+    results_df: pd.DataFrame, period: str, group: str
+) -> None:
+    """
+    Prepare resutls dataframe and save to CSV
+
+    Parameters:
+    results_df (pd.DataFrame): The DataFrame containing daily fish results.
+    period (str): The period for aggregation (e.g., "seasonal", "monthly", "biannual").
+    group (str): The data group (e.g., "fish", "inverts", "subs").
+    """
+    # Define sites to exclude from output
+    excluded_sites = {
+        "BONBONON",
+        "DAUIN POBLACION MPA",
+        "MASAPLOD NORTE MPA",
+        "TAMBOBO MPA",
+        "TURTLE HEAVEN",
+        "UNITY POINT",
+        "WELLBEACH",
+    }
+    # Drop rows with site in excluded_sites
+    results_df = results_df[~results_df["Site"].isin(excluded_sites)]
+    # Order columns by season and year
+    results_df["sort_key"] = results_df["Period"].apply(period_sort_key)
+    results_df = results_df.sort_values("sort_key").drop(columns="sort_key")
+
+    # Round all values for 2 decimal places
+    results_df = results_df.round(2)
+
+    output_dir = "data/output"
+    if not os.path.exists(f"{output_dir}/{group}/{period}"):
+        os.makedirs(f"{output_dir}/{group}/{period}")
+
+    # Filter out excluded sites and save only the ones we want
+    filename = f"{output_dir}/{group}/{period}/All_Sites.csv"
+    results_df.to_csv(filename, index=False)
+    print(f"Saved {filename}")
+
+
 # Create separate DataFrames for each site and save them as CSV files
-def save_site_dataframes(
-    daily_fish_results_df: pd.DataFrame, period: str, group: str
+def save_individual_site_dataframes(
+    results_df: pd.DataFrame, period: str, group: str
 ) -> None:
     """
     Create separate DataFrames for each site and save them as CSV files.
 
     Parameters:
-    daily_fish_results_df (pd.DataFrame): The DataFrame containing daily fish results.
-    period (str): The period for aggregation (e.g., "seasonal", "monthly").
+    results_df (pd.DataFrame): The DataFrame containing daily fish results.
+    period (str): The period for aggregation (e.g., "seasonal", "monthly", "biannual").
     group (str): The data group (e.g., "fish", "inverts", "subs").
     """
     # Define sites to exclude from output
@@ -168,22 +214,18 @@ def save_site_dataframes(
         "WELLBEACH",
     }
     # Order columns by season and year
-    daily_fish_results_df["sort_key"] = daily_fish_results_df["Period"].apply(
-        period_sort_key
-    )
-    daily_fish_results_df = daily_fish_results_df.sort_values("sort_key").drop(
-        columns="sort_key"
-    )
+    results_df["sort_key"] = results_df["Period"].apply(period_sort_key)
+    results_df = results_df.sort_values("sort_key").drop(columns="sort_key")
 
     # Round all values for 2 decimal places
-    daily_fish_results_df = daily_fish_results_df.round(2)
+    results_df = results_df.round(2)
 
     output_dir = "data/output"
     if not os.path.exists(f"{output_dir}/{group}/{period}"):
         os.makedirs(f"{output_dir}/{group}/{period}")
 
     # Filter out excluded sites and save only the ones we want
-    for site, site_df in daily_fish_results_df.groupby("Site"):
+    for site, site_df in results_df.groupby("Site"):
         if site not in excluded_sites:
             site_filename = f"{output_dir}/{group}/{period}/{site}.csv"
             site_df.to_csv(site_filename, index=False)
@@ -193,24 +235,50 @@ def save_site_dataframes(
 
 
 def period_sort_key(period_str):
-    # Match e.g. "Winter 17/18", "Autumn 2018", etc.
-    match = re.match(r"(\w+)\s+(\d{2,4})(?:/(\d{2}))?", period_str)
-    if not match:
-        return (9999, 99)  # Put unrecognized at end
+    """
+    Sort key function for period strings.
+    Handles seasonal (e.g., "Winter 17/18", "Autumn 2018"),
+    biannual (e.g., "Spring/Summer 24", "Autumn/Winter 24/25"),
+    and monthly periods.
+    """
+    # Try to match biannual format first (e.g., "Spring/Summer 24" or "Autumn/Winter 24/25")
+    biannual_match = re.match(r"(\w+)/(\w+)\s+(\d{2,4})(?:/(\d{2}))?", period_str)
+    if biannual_match:
+        season1, season2, year1, year2 = biannual_match.groups()
+        # Convert to full year
+        year1 = int(year1) if len(year1) == 4 else 2000 + int(year1)
+        if year2:
+            year2 = 2000 + int(year2)
+            year = year1  # Use the first year for sorting
+        else:
+            year = year1
 
-    season, year1, year2 = match.groups()
-    # Convert to full year
-    year1 = int(year1) if len(year1) == 4 else 2000 + int(year1)
-    if year2:
-        year2 = 2000 + int(year2)
-        year = year1  # Use the first year for sorting
-    else:
-        year = year1
+        # Assign order: Spring/Summer=0.5, Autumn/Winter=3.5
+        if season1 == "Spring":
+            s_order = 0.5  # Spring/Summer comes first
+        else:
+            s_order = 3.5  # Autumn/Winter comes after
+        return (year, s_order)
 
-    # Assign season order: Winter=0, Spring=1, Summer=2, Autumn=3
-    season_order = {"Winter": 4, "Spring": 1, "Summer": 2, "Autumn": 3}
-    s_order = season_order.get(season, 99)
-    return (year, s_order)
+    # Match seasonal format (e.g., "Winter 17/18", "Autumn 2018")
+    seasonal_match = re.match(r"(\w+)\s+(\d{2,4})(?:/(\d{2}))?", period_str)
+    if seasonal_match:
+        season, year1, year2 = seasonal_match.groups()
+        # Convert to full year
+        year1 = int(year1) if len(year1) == 4 else 2000 + int(year1)
+        if year2:
+            year2 = 2000 + int(year2)
+            year = year1  # Use the first year for sorting
+        else:
+            year = year1
+
+        # Assign season order: Winter=4, Spring=1, Summer=2, Autumn=3
+        season_order = {"Winter": 4, "Spring": 1, "Summer": 2, "Autumn": 3}
+        s_order = season_order.get(season, 99)
+        return (year, s_order)
+
+    # If no match, put at end
+    return (9999, 99)
 
 
 def find_latest_data_files(input_dir: str = "data/input") -> dict:
@@ -261,45 +329,3 @@ def find_latest_data_files(input_dir: str = "data/input") -> dict:
             )
 
     return found_files
-
-
-def summarize_with_ci(df, group_cols, value_cols, confidence=0.95):
-    records = []
-    grouped = df.groupby(group_cols)
-    for keys, g in grouped:
-        row = dict(zip(group_cols, keys if isinstance(keys, tuple) else (keys,)))
-        for col in value_cols:
-            data = pd.to_numeric(g[col], errors="coerce").dropna()
-            n = data.size
-            if n == 0:
-                mean = sd = se = ci_low = ci_high = eb_low = eb_high = np.nan
-            elif n == 1:
-                mean = float(data.iloc[0])
-                sd = se = ci_low = ci_high = eb_low = eb_high = np.nan
-            else:
-                mean = data.mean()
-                sd = data.std(ddof=1)
-                se = stats.sem(data, nan_policy="omit")
-                tcrit = stats.t.ppf((1 + confidence) / 2.0, df=n - 1)
-                margin = tcrit * se
-                ci_low, ci_high = mean - margin, mean + margin
-                eb_low, eb_high = mean - se, mean + se
-
-            if not pd.isna(ci_low):
-                ci_low = max(0, ci_low)
-            if not pd.isna(eb_low):
-                eb_low = max(0, eb_low)
-
-            row[col] = mean
-            row[f"{col}_N"] = int(n) if n == n else np.nan
-            row[f"{col}_SD"] = sd
-            row[f"{col}_SE"] = se
-            row[f"{col}_CI_low"] = ci_low
-            row[f"{col}_CI_high"] = ci_high
-            row[f"{col}_EB_low"] = eb_low
-            row[f"{col}_EB_high"] = eb_high
-        records.append(row)
-
-    out = pd.DataFrame.from_records(records)
-    order = list(group_cols) + [c for c in out.columns if c not in group_cols]
-    return out.loc[:, order]

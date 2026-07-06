@@ -23,27 +23,21 @@ def pre_process_data(survey_data_df: pd.DataFrame, group: str) -> pd.DataFrame:
         survey_data_df.drop(
             ["Observer_name_1", "Observer_name_2"], axis=1, inplace=True
         )
-    
+
     # Remove redundant Diver count columns (Total includes the total for both)
     survey_data_df.drop(["Diver_1_count", "Diver_2_count"], axis=1, inplace=True)
 
     # Remove time survey was recorded from date column
-    survey_data_df["Date"] = pd.to_datetime(
-        survey_data_df["Date"]
-    ).dt.floor("D")
+    survey_data_df["Date"] = pd.to_datetime(survey_data_df["Date"]).dt.floor("D")
 
     # Remove invalid surveys then drop column as it's no longer needed
     if "Survey_Status" in survey_data_df.columns:
-        survey_data_df = survey_data_df[
-            survey_data_df["Survey_Status"] == 1
-        ]
-        survey_data_df.drop(["Survey_Status"], axis=1, inplace=True)
+        survey_data_df = survey_data_df[survey_data_df["Survey_Status"] == 1]
+        survey_data_df = survey_data_df.drop(["Survey_Status"], axis=1)
 
     if group != "subs":
         # Remove surveys of fish size >120
-        survey_data_df = survey_data_df[
-            survey_data_df["Size"] != ">120"
-        ]
+        survey_data_df = survey_data_df[survey_data_df["Size"] != ">120"]
 
         # Average the size range
         size_list = [survey_data_df["Size"].str.split("-")]
@@ -71,13 +65,15 @@ def check_all_constants_exist_for_fish(survey_data_df: pd.DataFrame) -> None:
         "detritivore_fish.csv",
         "herbivore_fish.csv",
         "omnivore_fish.csv",
-        "carnivore_fish.csv"
+        "carnivore_fish.csv",
     ]
     all_constants = []
     for constant in consumer_constants:
-        constant_list = pd.read_csv(f"data/constants/{constant}",header=None).iloc[:,0].to_list()
+        constant_list = (
+            pd.read_csv(f"data/constants/{constant}", header=None).iloc[:, 0].to_list()
+        )
         all_constants.extend(constant_list)
-    
+
     # Check all species in the survey data appear in the consumer constant CSV files
     missing_species = list(set(unique_species) - set(all_constants))
     if missing_species:
@@ -86,9 +82,11 @@ def check_all_constants_exist_for_fish(survey_data_df: pd.DataFrame) -> None:
         )
     else:
         print("All consumer constants exist for fish in the survey data.")
-        
+
     # Check we have biomass coefficients for all species
-    biomass_coeffs = pd.read_csv("data/constants/biomass_coeffs_fish.csv", index_col="Species")
+    biomass_coeffs = pd.read_csv(
+        "data/constants/biomass_coeffs_fish.csv", index_col="Species"
+    )
     missing_biomass_coeffs = list(set(unique_species) - set(biomass_coeffs.index))
     if missing_biomass_coeffs:
         raise ValueError(
@@ -98,7 +96,9 @@ def check_all_constants_exist_for_fish(survey_data_df: pd.DataFrame) -> None:
         print("All fish species in the survey data have biomass coefficients.")
 
 
-def check_all_constants_exist_for_inverts(survey_data_df: pd.DataFrame, include_biomass: bool) -> None:
+def check_all_constants_exist_for_inverts(
+    survey_data_df: pd.DataFrame, include_biomass: bool
+) -> None:
     """
     Check that all constants used in the inverts metrics calculations exist.
     If any are missing, raise an error.
@@ -116,9 +116,11 @@ def check_all_constants_exist_for_inverts(survey_data_df: pd.DataFrame, include_
     ]
     all_constants = []
     for constant in consumer_constants:
-        constant_list = pd.read_csv(f"data/constants/{constant}",header=None).iloc[:,0].to_list()
+        constant_list = (
+            pd.read_csv(f"data/constants/{constant}", header=None).iloc[:, 0].to_list()
+        )
         all_constants.extend(constant_list)
-    
+
     # Check all species in the survey data appear in the consumer constant CSV files
     missing_species = list(set(unique_species) - set(all_constants))
     if missing_species:
@@ -127,16 +129,18 @@ def check_all_constants_exist_for_inverts(survey_data_df: pd.DataFrame, include_
         )
     else:
         print("All consumer constants exists for invertebrates in the survey data.")
-        
+
     # Check we have biomass coefficients for all species IF include_biomass is True
     if include_biomass:
-        biomass_coeffs = pd.read_csv("data/constants/biomass_coeffs_inverts.csv", index_col="Species")
+        biomass_coeffs = pd.read_csv(
+            "data/constants/biomass_coeffs_inverts.csv", index_col="Species"
+        )
         missing_biomass_coeffs = list(set(unique_species) - set(biomass_coeffs.index))
         if missing_biomass_coeffs:
             raise ValueError(
                 f"The following invertebrate species in the survey data are missing biomass coefficients: {missing_biomass_coeffs}"
             )
         else:
-            print("All invertebrate species in the survey data have biomass coefficients.")
-
-
+            print(
+                "All invertebrate species in the survey data have biomass coefficients."
+            )
